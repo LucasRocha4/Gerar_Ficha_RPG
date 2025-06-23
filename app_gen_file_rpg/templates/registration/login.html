@@ -63,7 +63,7 @@
         </p>
       </div>
 
-      <form @submit.prevent="handleLogin" class="space-y-6">
+      <form @submit.prevent="handleLogin" class="space-y-6" autocomplete="off">
         <div v-if="isRegistering">
           <label class="text-[#bbb] text-sm block mb-2">Nome de usuário</label>
           <input
@@ -122,100 +122,113 @@
     </div>
   </div>
 
-    <script>
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-            document.cookie.split(';').forEach(c => {
-                c = c.trim();
-                if (c.startsWith(name + '=')) {
-                cookieValue = decodeURIComponent(c.substring(name.length + 1));
-                }
-            });
+  <script>
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        document.cookie.split(';').forEach(c => {
+          c = c.trim();
+          if (c.startsWith(name + '=')) {
+            cookieValue = decodeURIComponent(c.substring(name.length + 1));
+          }
+        });
+      }
+      return cookieValue;
+    }
+
+    const { createApp, ref } = Vue;
+    createApp({
+      setup() {
+        const username      = ref('');
+        const email         = ref('');
+        const password      = ref('');
+        const isLoading     = ref(false);
+        const isRegistering = ref(false);
+        const showPassword  = ref(false);
+
+        const toggleRegistration = () => {
+          isRegistering.value = !isRegistering.value;
+        };
+        const togglePasswordVisibility = () => {
+          showPassword.value = !showPassword.value;
+        };
+
+        const handleLogin = async () => {
+          if (isRegistering.value && !username.value) {
+            alert('Informe um nome de usuário');
+            return;
+          }
+          if (!email.value || !password.value) {
+            alert('Preencha email e senha');
+            return;
+          }
+
+          isLoading.value = true;
+          try {
+            if (isRegistering.value) {
+
+              const resReg = await fetch('/login/submit/', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                  username: username.value,
+                  email: email.value,
+                  password: password.value,
+                  is_registering: true
+                })
+              });
+              const dataReg = await resReg.json();
+              if (!resReg.ok) throw new Error(dataReg.message || 'Registro falhou');
+
+              const resTok = await fetch('/api/token/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  username: username.value,
+                  password: password.value
+                })
+              });
+              const dataTok = await resTok.json();
+              if (!resTok.ok) throw new Error(dataTok.detail || 'Falha ao logar');
+
+              localStorage.setItem('access_token',  dataTok.access);
+              localStorage.setItem('refresh_token', dataTok.refresh);
+              window.location.href = '/';
+
+            } else {
+              const res = await fetch('/api/token/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  email:    email.value,
+                  password: password.value
+                })
+              });
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.detail || 'Falha ao logar');
+
+              localStorage.setItem('access_token',  data.access);
+              localStorage.setItem('refresh_token', data.refresh);
+              window.location.href = '/';
             }
-            return cookieValue;
-        }
+          } catch (err) {
+            alert(err.message);
+          } finally {
+            isLoading.value = false;
+          }
+        };
 
-        const { createApp, ref } = Vue;
-        createApp({
-            setup() {
-            const username = ref('');
-            const email = ref('');
-            const password = ref('');
-            const isLoading = ref(false);
-            const isRegistering = ref(false);
-            const showPassword = ref(false);
-
-            const errorMessage = ref(''); 
-            const successMessage = ref(''); 
-
-            const toggleRegistration = () => {
-                isRegistering.value = !isRegistering.value;
-                errorMessage.value = ''; 
-                successMessage.value = '';
-            };
-            const togglePasswordVisibility = () => {
-                showPassword.value = !showPassword.value;
-            };
-
-            const handleFormSubmit = async () => {
-                errorMessage.value = '';
-                successMessage.value = '';
-
-                if ((isRegistering.value && !username.value) || !email.value || !password.value) {
-                errorMessage.value = 'Por favor, preencha todos os campos obrigatórios.';
-                return;
-                }
-
-                isLoading.value = true;
-
-                const payload = {
-                    username: username.value,
-                    email: email.value,
-                    password: password.value,
-                    is_registering: isRegistering.value 
-                };
-
-                try {
-                const response = await fetch('/login/submit/', { 
-                    method: 'POST',
-                    headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await response.json(); 
-
-                if (!response.ok) {
-                    throw new Error(data.message || 'Ocorreu um erro desconhecido.');
-                }
-
-                successMessage.value = data.message;
-
-                if (data.redirect_url) {
-                    setTimeout(() => {
-                    window.location.href = data.redirect_url;
-                    }, 1000);
-                }
-
-                } catch (err) {
-                errorMessage.value = err.message;
-                } finally {
-                isLoading.value = false;
-                }
-            };
-
-            return {
-                username, email, password,
-                isLoading, isRegistering, showPassword,
-                errorMessage, successMessage,
-                toggleRegistration, togglePasswordVisibility,
-                handleFormSubmit
-            };
-            }
-        }).mount('#app');
-    </script>
+        return {
+          username, email, password,
+          isLoading, isRegistering, showPassword,
+          toggleRegistration, togglePasswordVisibility,
+          handleLogin
+        };
+      }
+    }).mount('#app');
+  </script>
 </body>
 </html>

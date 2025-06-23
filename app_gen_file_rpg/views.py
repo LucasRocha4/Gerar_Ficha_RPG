@@ -13,3 +13,6 @@ def home(request):
 
 def criando(request):
     return render(request, 'pages/criando.html')
+
+def login(request):
+    return render(request, 'registration/login.html')
