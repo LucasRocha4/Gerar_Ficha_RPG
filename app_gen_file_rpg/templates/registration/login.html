@@ -187,10 +187,11 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  username: username.value,
+                  email: email.value,
                   password: password.value
                 })
               });
+
               const dataTok = await resTok.json();
               if (!resTok.ok) throw new Error(dataTok.detail || 'Falha ao logar');
 
