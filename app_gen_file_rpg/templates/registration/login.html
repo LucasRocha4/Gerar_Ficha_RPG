@@ -64,21 +64,11 @@
       </div>
 
       <form @submit.prevent="handleLogin" class="space-y-6" autocomplete="off">
-        <div v-if="isRegistering">
+        <div>
           <label class="text-[#bbb] text-sm block mb-2">Nome de usuário</label>
           <input
             v-model="username"
             type="text"
-            class="w-full px-4 py-2 bg-white border-2 border-[#bbb] text-black focus:outline-none focus:border-white rounded"
-            :disabled="isLoading"
-          />
-        </div>
-
-        <div>
-          <label class="text-[#bbb] text-sm block mb-2">Email</label>
-          <input
-            v-model="email"
-            type="email"
             class="w-full px-4 py-2 bg-white border-2 border-[#bbb] text-black focus:outline-none focus:border-white rounded"
             :disabled="isLoading"
           />
@@ -140,7 +130,6 @@
     createApp({
       setup() {
         const username      = ref('');
-        const email         = ref('');
         const password      = ref('');
         const isLoading     = ref(false);
         const isRegistering = ref(false);
@@ -158,8 +147,8 @@
             alert('Informe um nome de usuário');
             return;
           }
-          if (!email.value || !password.value) {
-            alert('Preencha email e senha');
+          if (!username.value || !password.value) {
+            alert('Preencha o nome de usuario e senha');
             return;
           }
 
@@ -175,7 +164,7 @@
                 },
                 body: JSON.stringify({
                   username: username.value,
-                  email: email.value,
+                  username: username.value,
                   password: password.value,
                   is_registering: true
                 })
@@ -187,7 +176,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  email: email.value,
+                  username: username.value,
                   password: password.value
                 })
               });
@@ -204,7 +193,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  email:    email.value,
+                  username:    username.value,
                   password: password.value
                 })
               });
@@ -223,7 +212,7 @@
         };
 
         return {
-          username, email, password,
+          username, password,
           isLoading, isRegistering, showPassword,
           toggleRegistration, togglePasswordVisibility,
           handleLogin

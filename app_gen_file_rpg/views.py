@@ -9,8 +9,9 @@ from    django.http                          import JsonResponse
 from    rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from    rest_framework_simplejwt.views       import TokenObtainPairView
 from    rest_framework                       import serializers
+from    django.conf                          import settings
 
-
+import os
 import  json
 
 class RegistrarUsuario(CreateView):
@@ -51,51 +52,6 @@ def user_registration(request):
                 return JsonResponse({'result': False, 'msg': 'Credenciais inválidas'})
 
     return JsonResponse({'error': 'Método não permitido'})
-
-
-## JWT LOGIN PERSONALIZADO PARA USAR EMAIL
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    email = serializers.EmailField()
-
-    def validate(self, attrs):
-        email = attrs.get('email')
-        password = attrs.get('password')
-
-        try:
-            user_obj = User.objects.get(email=email)
-            username_for_auth = user_obj.username
-        except User.DoesNotExist:
-            raise Exception("Credenciais inválidas")
-
-        user = authenticate(username=username_for_auth, password=password)
-        if user is None:
-            raise Exception("Credenciais inválidas")
-
-        # Faz login na sessão
-        request = self.context.get('request')
-        login(request, user)
-
-        # Gera tokens JWT
-        data = super().validate({
-            "username": username_for_auth,
-            "password": password
-        })
-        data.update({"msg": "Login realizado com sucesso"})
-
-        return data
-
-
-class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
-
-    def post(self, request, *args, **kwargs):
-        try:
-            return super().post(request, *args, **kwargs)
-        except Exception:
-            return JsonResponse({
-                "result": False,
-                "msg": "Credenciais inválidas"
-            }, status=401)
 
 
 def home(request):
