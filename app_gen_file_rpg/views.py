@@ -14,6 +14,8 @@ from    django.core.mail                     import send_mail
 from    django.contrib.auth.tokens           import default_token_generator
 from    django.utils.http                    import urlsafe_base64_encode, urlsafe_base64_decode
 from    django.utils.encoding                import force_bytes, force_str
+from    django.utils.http                    import urlsafe_base64_encode
+from    django.utils.encoding                import force_bytes
 
 import os
 import  json
@@ -35,7 +37,7 @@ def user_registration(request):
         is_registering = data.get('is_registering', False)
 
         if is_registering:
-            if User.objects.filter(email=email).exists():
+            if User.objects.filter(username=username).exists():
                 return JsonResponse({'result': False, 'msg': 'Usuário já existe'})
 
             user = User.objects.create_user(username=username, password=password, email=email)
@@ -43,7 +45,7 @@ def user_registration(request):
 
         else:
             try:
-                user_obj = User.objects.get(email=email)
+                user_obj = User.objects.get(username=username)
                 username_for_auth = user_obj.username
             except User.DoesNotExist:
                 return JsonResponse({'result': False, 'msg': 'Usuário não encontrado'})
@@ -110,6 +112,9 @@ def password_reset_request(request):
                 recipient_list=[email],
                 fail_silently=False,
             )
+            # For development, just return success
+            # In production, you would send the actual email:
+            # send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
             
             return JsonResponse({
                 'result': True, 
