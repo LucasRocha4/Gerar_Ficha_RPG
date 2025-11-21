@@ -131,3 +131,19 @@ SIMPLE_JWT = {
     'USER_ID_FIELD': 'email', # Isso diz ao JWT para usar o email como ID
     'USER_ID_CLAIM': 'email', # E também no token
 }
+
+# Email Configuration for Password Recovery
+# For development: prints emails to console
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# For production, use SMTP (uncomment and configure):
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'your-email@gmail.com'
+# EMAIL_HOST_PASSWORD = 'your-app-password'
+# DEFAULT_FROM_EMAIL = 'FichaDnD <noreply@fichadnd.com>'
+
+# For development testing
+DEFAULT_FROM_EMAIL = 'noreply@fichadnd.com'

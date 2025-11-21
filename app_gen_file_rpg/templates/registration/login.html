@@ -113,6 +113,8 @@
       </form>
 
       <div class="text-center mt-6">
+        <a href="{% url 'password_reset' %}" class="text-[#bbb] hover:text-white text-sm mr-4">Esqueceu a senha?</a>
+        <a href="#" @click.prevent="toggleRegistration" class="text-[#bbb] hover:text-white text-sm">
         <a href="#" class="text-[#bbb] hover:text-white text-sm mr-4">Esqueceu a senha?</a>
         <a href="#" @click.prevent="toggleRegistration" class="text-[#bbb] hover:text-white text-sm" onclick="location.href='{% url 'password_recover' %}'">
           <span v-if="isRegistering">Já faz parte do reino?</span>

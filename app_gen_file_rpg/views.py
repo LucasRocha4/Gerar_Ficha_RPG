@@ -12,6 +12,8 @@ from    rest_framework                       import serializers
 from    django.conf                          import settings
 from    django.core.mail                     import send_mail
 from    django.contrib.auth.tokens           import default_token_generator
+from    django.utils.http                    import urlsafe_base64_encode, urlsafe_base64_decode
+from    django.utils.encoding                import force_bytes, force_str
 from    django.utils.http                    import urlsafe_base64_encode
 from    django.utils.encoding                import force_bytes
 
@@ -65,6 +67,11 @@ def home(request):
 def criando(request):
     return render(request, 'pages/criando.html')
 
+
+def password_reset_view(request):
+    return render(request, 'registration/password_reset.html')
+
+
 def password_reset_request(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -97,6 +104,14 @@ def password_reset_request(request):
             Boa sorte em suas aventuras!
             '''
             
+            # Send email (in development, it prints to console)
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+                fail_silently=False,
+            )
             # For development, just return success
             # In production, you would send the actual email:
             # send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
@@ -113,5 +128,66 @@ def password_reset_request(request):
                 'result': True, 
                 'message': 'Se este e-mail estiver cadastrado, você receberá instruções de recuperação.'
             })
+    
+    return JsonResponse({'error': 'Método não permitido'}, status=405)
+
+
+def password_reset_confirm_page(request, uidb64, token):
+    """Render the password reset confirmation page"""
+    return render(request, 'pages/password_reset_confirm.html', {
+        'uidb64': uidb64,
+        'token': token
+    })
+
+
+def password_reset_confirm(request):
+    """Process the password reset with new password"""
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        uidb64 = data.get('uidb64')
+        token = data.get('token')
+        new_password = data.get('new_password')
+        confirm_password = data.get('confirm_password')
+        
+        # Validate passwords match
+        if new_password != confirm_password:
+            return JsonResponse({
+                'result': False,
+                'message': 'As senhas não coincidem'
+            }, status=400)
+        
+        # Validate password strength
+        if len(new_password) < 8:
+            return JsonResponse({
+                'result': False,
+                'message': 'A senha deve ter pelo menos 8 caracteres'
+            }, status=400)
+        
+        try:
+            # Decode the user ID
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+            
+            # Verify the token
+            if not default_token_generator.check_token(user, token):
+                return JsonResponse({
+                    'result': False,
+                    'message': 'Link de recuperação inválido ou expirado'
+                }, status=400)
+            
+            # Set the new password
+            user.set_password(new_password)
+            user.save()
+            
+            return JsonResponse({
+                'result': True,
+                'message': 'Senha redefinida com sucesso! Você já pode fazer login.'
+            })
+            
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return JsonResponse({
+                'result': False,
+                'message': 'Link de recuperação inválido'
+            }, status=400)
     
     return JsonResponse({'error': 'Método não permitido'}, status=405)
