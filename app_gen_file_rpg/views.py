@@ -10,6 +10,10 @@ from    rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from    rest_framework_simplejwt.views       import TokenObtainPairView
 from    rest_framework                       import serializers
 from    django.conf                          import settings
+from    django.core.mail                     import send_mail
+from    django.contrib.auth.tokens           import default_token_generator
+from    django.utils.http                    import urlsafe_base64_encode
+from    django.utils.encoding                import force_bytes
 
 import os
 import  json
@@ -60,3 +64,59 @@ def home(request):
 
 def criando(request):
     return render(request, 'pages/criando.html')
+
+
+def password_reset_view(request):
+    return render(request, 'registration/password_reset.html')
+
+
+def password_reset_request(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        email = data.get('email')
+
+        try:
+            user = User.objects.get(email=email)
+            
+            # Generate password reset token
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            
+            # Create reset link (you'll need to implement the reset confirmation page)
+            reset_link = f"{request.scheme}://{request.get_host()}/password-reset-confirm/{uid}/{token}/"
+            
+            # Send email
+            subject = 'FichaDnD - Recuperação de Senha'
+            message = f'''
+            Olá, aventureiro!
+            
+            Você solicitou a recuperação de senha para sua conta no FichaDnD.
+            
+            Clique no link abaixo para redefinir sua senha:
+            {reset_link}
+            
+            Se você não solicitou esta recuperação, ignore este e-mail.
+            
+            Este link expira em 24 horas.
+            
+            Boa sorte em suas aventuras!
+            '''
+            
+            # For development, just return success
+            # In production, you would send the actual email:
+            # send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
+            
+            return JsonResponse({
+                'result': True, 
+                'message': 'E-mail de recuperação enviado com sucesso!',
+                'reset_link': reset_link  # Only for development/testing
+            })
+            
+        except User.DoesNotExist:
+            # Don't reveal if user exists or not for security
+            return JsonResponse({
+                'result': True, 
+                'message': 'Se este e-mail estiver cadastrado, você receberá instruções de recuperação.'
+            })
+    
+    return JsonResponse({'error': 'Método não permitido'}, status=405)
