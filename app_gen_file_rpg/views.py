@@ -26,7 +26,6 @@ class RegistrarUsuario(CreateView):
     success_url = reverse_lazy('login')
 
 
-# Mantenha os imports que você já tem...
 
 def user_registration(request):
     if request.method == 'POST':
@@ -38,26 +37,21 @@ def user_registration(request):
         is_registering = data.get('is_registering', False)
 
         if is_registering:
-            # --- CORREÇÃO 1: Verificar duplicidade antes ---
             if User.objects.filter(username=username).exists():
                 return JsonResponse({'result': False, 'msg': 'Usuário já existe'})
 
-            # Cria o usuário
             user = User.objects.create_user(username=username, password=password, email=email)
             
-            # --- CORREÇÃO 2: LOGAR AUTOMATICAMENTE AO CADASTRAR ---
-            # Isso cria a sessão imediatamente após o registro
             login(request, user)
             
             return JsonResponse({'result': True, 'msg': 'Usuário registrado e logado!'})
 
         else:
-            # Lógica de Login (estava quase certa, mas vamos simplificar)
-            # Tenta autenticar direto. O authenticate já lida com checagem de senha.
+
             user = authenticate(request, username=username, password=password)
 
             if user is not None:
-                login(request, user) # Cria o cookie de sessão
+                login(request, user) 
                 return JsonResponse({'result': True, 'msg': 'Login realizado com sucesso'})
             else:
                 return JsonResponse({'result': False, 'msg': 'Credenciais inválidas'})
@@ -119,9 +113,8 @@ def password_reset_request(request):
                 recipient_list=[email],
                 fail_silently=False,
             )
-            # For development, just return success
-            # In production, you would send the actual email:
-            # send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
+            
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
             
             return JsonResponse({
                 'result': True, 
