@@ -115,8 +115,6 @@
       <div class="text-center mt-6">
         <a href="{% url 'password_reset' %}" class="text-[#bbb] hover:text-white text-sm mr-4">Esqueceu a senha?</a>
         <a href="#" @click.prevent="toggleRegistration" class="text-[#bbb] hover:text-white text-sm">
-        <a href="#" class="text-[#bbb] hover:text-white text-sm mr-4">Esqueceu a senha?</a>
-        <a href="#" @click.prevent="toggleRegistration" class="text-[#bbb] hover:text-white text-sm" onclick="location.href='{% url 'password_recover' %}'">
           <span v-if="isRegistering">Já faz parte do reino?</span>
           <span v-else>Novo(a) por aqui?</span>
         </a>
@@ -124,7 +122,8 @@
     </div>
   </div>
 
-  <script>
+<script>
+    // Função auxiliar para pegar o CSRF Token do Django
     function getCookie(name) {
       let cookieValue = null;
       if (document.cookie && document.cookie !== '') {
@@ -139,8 +138,10 @@
     }
 
     const { createApp, ref } = Vue;
+
     createApp({
       setup() {
+        // --- Variáveis de Estado (Mantidas iguais) ---
         const username      = ref('');
         const email         = ref('');
         const password      = ref('');
@@ -148,6 +149,7 @@
         const isRegistering = ref(false);
         const showPassword  = ref(false);
 
+        // --- Funções de Interface (Mantidas iguais) ---
         const toggleRegistration = () => {
           isRegistering.value = !isRegistering.value;
         };
@@ -155,70 +157,53 @@
           showPassword.value = !showPassword.value;
         };
 
+        // --- NOVA LÓGICA DE LOGIN ---
         const handleLogin = async () => {
+          // 1. Validações básicas
           if (isRegistering.value && !username.value) {
             alert('Informe um nome de usuário');
             return;
           }
           if (!username.value || !password.value) {
-            alert('Preencha o nome de usuario e senha');
+            alert('Preencha o nome de usuário e senha');
             return;
           }
 
           isLoading.value = true;
+
           try {
-            if (isRegistering.value) {
+            // 2. Faz apenas UMA requisição para sua view Python
+            // Certifique-se que '/login/submit/' é a URL correta no urls.py
+            const response = await fetch('/login/submit/', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken') // Indispensável para segurança Django
+              },
+              body: JSON.stringify({
+                username: username.value,
+                email: email.value,
+                password: password.value,
+                is_registering: isRegistering.value // True = Cadastro, False = Login
+              })
+            });
 
-              const resReg = await fetch('/login/submit/', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({
-                  username: username.value,
-                  email: email.value,
-                  password: password.value,
-                  is_registering: true
-                })
-              });
-              const dataReg = await resReg.json();
-              if (!resReg.ok) throw new Error(dataReg.message || 'Registro falhou');
+            const data = await response.json();
 
-              const resTok = await fetch('/api/token/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  username: username.value,
-                  password: password.value
-                })
-              });
-
-              const dataTok = await resTok.json();
-              if (!resTok.ok) throw new Error(dataTok.detail || 'Falha ao logar');
-
-              localStorage.setItem('access_token',  dataTok.access);
-              localStorage.setItem('refresh_token', dataTok.refresh);
-              window.location.href = '/';
-
+            // 3. Verifica a resposta do Python
+            if (data.result === true) {
+              // SUCESSO!
+              // O Python já criou a sessão (login(request, user)).
+              // Agora recarregamos a página para a Home.
+              window.location.href = '/'; 
             } else {
-              const res = await fetch('/api/token/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  username:    username.value,
-                  password: password.value
-                })
-              });
-              const data = await res.json();
-              if (!res.ok) throw new Error(data.detail || 'Falha ao logar');
-
-              localStorage.setItem('access_token',  data.access);
-              localStorage.setItem('refresh_token', data.refresh);
-              window.location.href = '/';
+              // ERRO (Ex: Senha errada ou usuário já existe)
+              alert(data.msg || 'Erro ao processar');
             }
+
           } catch (err) {
-            alert(err.message);
+            console.error(err);
+            alert('Erro de conexão com o servidor.');
           } finally {
             isLoading.value = false;
           }
@@ -232,6 +217,6 @@
         };
       }
     }).mount('#app');
-  </script>
+</script>
 </body>
 </html>

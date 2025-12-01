@@ -2,7 +2,7 @@ from    django.shortcuts                     import render
 from    django.urls                          import reverse_lazy
 from    django.views.generic                 import CreateView
 from    .forms                               import RegistrarUsuario
-from    app_gen_file_rpg.fill_file           import FillFile
+#from    app_gen_file_rpg.fill_file           import FillFile
 from    django.contrib.auth.models           import User
 from    django.contrib.auth                  import authenticate, login      
 from    django.http                          import JsonResponse
@@ -26,6 +26,8 @@ class RegistrarUsuario(CreateView):
     success_url = reverse_lazy('login')
 
 
+# Mantenha os imports que você já tem...
+
 def user_registration(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -33,26 +35,29 @@ def user_registration(request):
         username = data.get('username')
         email = data.get('email')
         password = data.get('password')
-
         is_registering = data.get('is_registering', False)
 
         if is_registering:
+            # --- CORREÇÃO 1: Verificar duplicidade antes ---
             if User.objects.filter(username=username).exists():
                 return JsonResponse({'result': False, 'msg': 'Usuário já existe'})
 
+            # Cria o usuário
             user = User.objects.create_user(username=username, password=password, email=email)
-            return JsonResponse({'result': True, 'msg': 'Usuário registrado com sucesso'})
+            
+            # --- CORREÇÃO 2: LOGAR AUTOMATICAMENTE AO CADASTRAR ---
+            # Isso cria a sessão imediatamente após o registro
+            login(request, user)
+            
+            return JsonResponse({'result': True, 'msg': 'Usuário registrado e logado!'})
 
         else:
-            try:
-                user_obj = User.objects.get(username=username)
-                username_for_auth = user_obj.username
-            except User.DoesNotExist:
-                return JsonResponse({'result': False, 'msg': 'Usuário não encontrado'})
+            # Lógica de Login (estava quase certa, mas vamos simplificar)
+            # Tenta autenticar direto. O authenticate já lida com checagem de senha.
+            user = authenticate(request, username=username, password=password)
 
-            user = authenticate(request, username=username_for_auth, password=password)
             if user is not None:
-                login(request, user)
+                login(request, user) # Cria o cookie de sessão
                 return JsonResponse({'result': True, 'msg': 'Login realizado com sucesso'})
             else:
                 return JsonResponse({'result': False, 'msg': 'Credenciais inválidas'})
@@ -61,33 +66,36 @@ def user_registration(request):
 
 
 def home(request):
-    return render(request, 'pages/home.html')
+    context = {
+        'user': request.user
+    }
+    return render(request, 'pages/home.html', context)
 
 
 def criando(request):
+    
     return render(request, 'pages/criando.html')
 
 
 def password_reset_view(request):
     return render(request, 'registration/password_reset.html')
 
-
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+@csrf_exempt
 def password_reset_request(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        email = data.get('email')
+        email = data.get('recover_email')
 
         try:
             user = User.objects.get(email=email)
             
-            # Generate password reset token
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             
-            # Create reset link (you'll need to implement the reset confirmation page)
             reset_link = f"{request.scheme}://{request.get_host()}/password-reset-confirm/{uid}/{token}/"
             
-            # Send email
             subject = 'FichaDnD - Recuperação de Senha'
             message = f'''
             Olá, aventureiro!
@@ -104,7 +112,6 @@ def password_reset_request(request):
             Boa sorte em suas aventuras!
             '''
             
-            # Send email (in development, it prints to console)
             send_mail(
                 subject=subject,
                 message=message,
@@ -123,7 +130,6 @@ def password_reset_request(request):
             })
             
         except User.DoesNotExist:
-            # Don't reveal if user exists or not for security
             return JsonResponse({
                 'result': True, 
                 'message': 'Se este e-mail estiver cadastrado, você receberá instruções de recuperação.'
@@ -133,7 +139,6 @@ def password_reset_request(request):
 
 
 def password_reset_confirm_page(request, uidb64, token):
-    """Render the password reset confirmation page"""
     return render(request, 'pages/password_reset_confirm.html', {
         'uidb64': uidb64,
         'token': token
@@ -141,7 +146,6 @@ def password_reset_confirm_page(request, uidb64, token):
 
 
 def password_reset_confirm(request):
-    """Process the password reset with new password"""
     if request.method == 'POST':
         data = json.loads(request.body)
         uidb64 = data.get('uidb64')
@@ -149,14 +153,12 @@ def password_reset_confirm(request):
         new_password = data.get('new_password')
         confirm_password = data.get('confirm_password')
         
-        # Validate passwords match
         if new_password != confirm_password:
             return JsonResponse({
                 'result': False,
                 'message': 'As senhas não coincidem'
             }, status=400)
         
-        # Validate password strength
         if len(new_password) < 8:
             return JsonResponse({
                 'result': False,
@@ -164,18 +166,15 @@ def password_reset_confirm(request):
             }, status=400)
         
         try:
-            # Decode the user ID
             uid = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
             
-            # Verify the token
             if not default_token_generator.check_token(user, token):
                 return JsonResponse({
                     'result': False,
                     'message': 'Link de recuperação inválido ou expirado'
                 }, status=400)
             
-            # Set the new password
             user.set_password(new_password)
             user.save()
             
@@ -191,3 +190,6 @@ def password_reset_confirm(request):
             }, status=400)
     
     return JsonResponse({'error': 'Método não permitido'}, status=405)
+
+def password_recover(request):
+    return render(request, 'pages/password_recover.html')

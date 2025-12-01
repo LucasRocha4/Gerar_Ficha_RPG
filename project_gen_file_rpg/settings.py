@@ -13,6 +13,8 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 SECRET_KEY = config('SECRET_KEY')
+HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_USER = config('HOST_EMAIL_USER')
 # Application definition
 
 INSTALLED_APPS = [
@@ -121,7 +123,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
+        'rest_framework.authentication.SessionAuthentication',    ),
 }
 
 SIMPLE_JWT = {
@@ -132,18 +134,13 @@ SIMPLE_JWT = {
     'USER_ID_CLAIM': 'email', # E também no token
 }
 
-# Email Configuration for Password Recovery
-# For development: prints emails to console
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# For production, use SMTP (uncomment and configure):
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'your-email@gmail.com'
-# EMAIL_HOST_PASSWORD = 'your-app-password'
-# DEFAULT_FROM_EMAIL = 'FichaDnD <noreply@fichadnd.com>'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 
-# For development testing
-DEFAULT_FROM_EMAIL = 'noreply@fichadnd.com'
+EMAIL_HOST_USER = EMAIL_USER
+EMAIL_HOST_PASSWORD = HOST_PASSWORD 
+
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

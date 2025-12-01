@@ -24,7 +24,7 @@
 </head>
 <body>
   {% include "components/navbar.html" %}
-
+  
   <div class="container mt-5">
     <form id="charForm" method="post" action="{% url 'criando' %}">
       {% csrf_token %}

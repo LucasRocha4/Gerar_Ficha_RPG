@@ -186,9 +186,3 @@ pool = [
     {"name":"Handaxe","die":6,"type":"melee"},
     {"name":"Spear","die":6,"type":"melee"},
 ]
-
-def gen_atributos():
-    atributo = sum(sorted([randint(1, 6) for _ in range(4)])[1:])
-
-    return atributo
-
