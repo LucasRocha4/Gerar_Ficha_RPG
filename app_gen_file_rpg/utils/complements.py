@@ -70,12 +70,6 @@ TRANSLATIONS = {
     'spell_level': {'pt': 'Nível', 'en': 'Level'},
 }
 
-LANGUAGES = [
-    "Abyssal", "Celestial", "Common", "Draconic", "Deep Speech",
-    "Infernal", "Primordial", "Sylvan", "Undercommon", "Elvish", "Dwarvish",
-    "Gnomish", "Halfling", "Orc", "Goblin"
-]
-
 MOD_TABLE = {
     1: -5, 2: -4, 3: -4, 4: -3, 5: -3, 6: -2,
     7: -2, 8: -1, 9: -1, 10: 0, 11: 0, 12: 1,
@@ -84,7 +78,7 @@ MOD_TABLE = {
     25: 7, 26: 8, 27: 8, 28: 9, 29: 9, 30: 10
 }
 
-proficiency_by_level = [2, 2, 2, 2,   
+PROFICIENCY_BY_LEVEL = [2, 2, 2, 2,   
                         3, 3, 3, 3,  
                         4, 4, 4, 4,   
                         5, 5, 5, 5,  
@@ -156,33 +150,114 @@ SKILLS_MAP = {
     "Religion":      "INT"
 }
 
-API_TO_PDF_SKILL = {
-    "skill-acrobatics":      "Acrobatics",
-    "skill-animal-handling": "Animal",
-    "skill-arcana":          "Arcana",
-    "skill-athletics":       "Athletics",
-    "skill-deception":       "Deception ",
-    "skill-history":         "History ",
-    "skill-insight":         "Insight",
-    "skill-intimidation":    "Intimidation",
-    "skill-investigation":   "Investigation ",
-    "skill-medicine":        "Medicine",
-    "skill-nature":          "Nature",
-    "skill-perception":      "Perception ",
-    "skill-performance":     "Performance",
-    "skill-persuasion":      "Persuasion",
-    "skill-sleight-of-hand": "SleightofHand",
-    "skill-stealth":         "Stealth ",
-    "skill-survival":        "Survival",
-    "skill-religion":        "Religion",
+LANGUAGES_MAP = {
+    "Abyssal":      {'pt': "Abissal",               'en': "Abyssal"},
+    "Celestial":    {'pt': "Celestial",             'en': "Celestial"},
+    "Common":       {'pt': "Comum",                 'en': "Common"},
+    "Draconic":     {'pt': "Dracônico",             'en': "Draconic"},
+    "Deep Speech":  {'pt': "Fala das Profundezas",  'en': "Deep Speech"},
+    "Infernal":     {'pt': "Infernal",              'en': "Infernal"},
+    "Primordial":   {'pt': "Primordial",            'en': "Primordial"},
+    "Sylvan":       {'pt': "Silvestre",             'en': "Sylvan"},
+    "Undercommon":  {'pt': "Subcomum",              'en': "Undercommon"},
+    "Elvish":       {'pt': "Élfico",                'en': "Elvish"},
+    "Dwarvish":     {'pt': "Anão",                  'en': "Dwarvish"},
+    "Gnomish":      {'pt': "Gnômico",               'en': "Gnomish"},
+    "Halfling":     {'pt': "Halfling",              'en': "Halfling"},
+    "Orc":          {'pt': "Orc",                   'en': "Orc"},
+    "Goblin":       {'pt': "Goblin",                'en': "Goblin"}
 }
 
-pool = [
-    {"name":"Shortsword","die":6,"type":"melee"},
-    {"name":"Longsword","die":8,"type":"melee"},
-    {"name":"Dagger","die":4,"type":"melee"},
-    {"name":"Quarterstaff","die":6,"type":"melee"},
-    {"name":"Light Crossbow","die":8,"type":"ranged"},
-    {"name":"Handaxe","die":6,"type":"melee"},
-    {"name":"Spear","die":6,"type":"melee"},
-]
+WEAPONS_MAP = {
+    "Shortsword":     {'pt': "Espada Curta",    'en': "Shortsword"},
+    "Longsword":      {'pt': "Espada Longa",    'en': "Longsword"},
+    "Dagger":         {'pt': "Adaga",           'en': "Dagger"},
+    "Quarterstaff":   {'pt': "Bordão",          'en': "Quarterstaff"},
+    "Light Crossbow": {'pt': "Besta Leve",      'en': "Light Crossbow"},
+    "Handaxe":        {'pt': "Machadinha",      'en': "Handaxe"},
+    "Spear":          {'pt': "Lança",           'en': "Spear"},
+    "Greataxe":       {'pt': "Machado Grande",  'en': "Greataxe"},
+    "Greatsword":     {'pt': "Espada Grande",   'en': "Greatsword"},
+    "Shortbow":       {'pt': "Arco Curto",      'en': "Shortbow"},
+    "Longbow":        {'pt': "Arco Longo",      'en': "Longbow"},
+    "Rapier":         {'pt': "Rapieira",        'en': "Rapier"},
+    "Scimitar":       {'pt': "Cimitarra",       'en': "Scimitar"},
+    "Mace":           {'pt': "Maça",            'en': "Mace"},
+}
+
+ATTR_MAP = {
+    'strength':     {'pt': 'Força',         'en': 'Strength'},
+    'dexterity':    {'pt': 'Destreza',      'en': 'Dexterity'},
+    'constitution': {'pt': 'Constituição',  'en': 'Constitution'},
+    'intelligence': {'pt': 'Inteligência',  'en': 'Intelligence'},
+    'wisdom':       {'pt': 'Sabedoria',     'en': 'Wisdom'},
+    'charisma':     {'pt': 'Carisma',       'en': 'Charisma'}
+}
+
+SKILLS_MAP_LABELS = {
+    "Acrobatics":       {'pt': "Acrobacia",           'en': "Acrobatics"},
+    "AnimalHandling":   {'pt': "Lidar com Animais",   'en': "Animal Handling"}, # Removi o espaço na chave
+    "Arcana":           {'pt': "Arcanismo",           'en': "Arcana"},
+    "Athletics":        {'pt': "Atletismo",           'en': "Athletics"},
+    "Deception":        {'pt': "Enganação",           'en': "Deception"},
+    "History":          {'pt': "História",            'en': "History"},
+    "Insight":          {'pt': "Intuição",            'en': "Insight"},
+    "Intimidation":     {'pt': "Intimidação",         'en': "Intimidation"},
+    "Investigation":    {'pt': "Investigação",        'en': "Investigation"},
+    "Medicine":         {'pt': "Medicina",            'en': "Medicine"},
+    "Nature":           {'pt': "Natureza",            'en': "Nature"},
+    "Perception":       {'pt': "Percepção",           'en': "Perception"},
+    "Performance":      {'pt': "Atuação",             'en': "Performance"},
+    "Persuasion":       {'pt': "Persuasão",           'en': "Persuasion"},
+    "SleightofHand":    {'pt': "Prestidigitação",     'en': "Sleight of Hand"}, # Removi o espaço na chave
+    "Stealth":          {'pt': "Furtividade",         'en': "Stealth"},
+    "Survival":         {'pt': "Sobrevivência",       'en': "Survival"},
+    "Religion":         {'pt': "Religião",            'en': "Religion"},
+}
+
+# 3. Dicionário de Abreviações (Para Saves e texto pequeno)
+ABBR_MAP = {
+    'STR': {'pt': 'FOR', 'en': 'STR'},
+    'DEX': {'pt': 'DES', 'en': 'DEX'},
+    'CON': {'pt': 'CON', 'en': 'CON'},
+    'INT': {'pt': 'INT', 'en': 'INT'},
+    'WIS': {'pt': 'SAB', 'en': 'WIS'},
+    'CHA': {'pt': 'CAR', 'en': 'CHA'},
+}
+
+def get_labels(lang='pt'):
+    """Retorna um pacotão com TODAS as traduções necessárias para o HTML"""
+    if lang not in ['pt', 'en']:
+        lang = 'pt'
+        
+    # Começa com os labels gerais
+    labels = {k: v[lang] for k, v in TRANSLATIONS.items()}
+    
+    # Adiciona as perícias ao dicionário labels
+    for k, v in SKILLS_MAP_LABELS.items():
+        labels[k] = v[lang]
+
+    # Adiciona as abreviações (ex: labels['abbr_STR'] = 'FOR')
+    for k, v in ABBR_MAP.items():
+        labels[f"abbr_{k}"] = v[lang]
+        
+    return labels
+
+def translate_saves_list(saves_list, lang='pt'):
+    """Função auxiliar para traduzir a lista de Saves dentro da View"""
+    if not saves_list: return []
+    
+    new_list = []
+    for save in saves_list:
+        # Copia o dicionário para não alterar a sessão original
+        new_save = save.copy()
+        original_abbr = save['abbr'] # É sempre STR, DEX, etc (vem do FillFile)
+        
+        # Traduz a sigla para exibição
+        if original_abbr in ABBR_MAP:
+            new_save['display_abbr'] = ABBR_MAP[original_abbr][lang]
+        else:
+            new_save['display_abbr'] = original_abbr
+            
+        new_list.append(new_save)
+    return new_list

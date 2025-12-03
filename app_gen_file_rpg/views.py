@@ -1,8 +1,8 @@
-from    django.shortcuts                     import render
+from    django.shortcuts                     import render, redirect
 from    django.urls                          import reverse_lazy
 from    django.views.generic                 import CreateView
 from    .forms                               import RegistrarUsuario
-#from    app_gen_file_rpg.fill_file           import FillFile
+from    app_gen_file_rpg.fill_file           import FillFile
 from    django.contrib.auth.models           import User
 from    django.contrib.auth                  import authenticate, login      
 from    django.http                          import JsonResponse
@@ -16,6 +16,8 @@ from    django.utils.http                    import urlsafe_base64_encode, urlsa
 from    django.utils.encoding                import force_bytes, force_str
 from    django.utils.http                    import urlsafe_base64_encode
 from    django.utils.encoding                import force_bytes
+from    app_gen_file_rpg.fill_file           import FillFile
+from    app_gen_file_rpg.utils.complements   import get_labels, translate_saves_list
 
 import os
 import  json
@@ -65,11 +67,42 @@ def home(request):
     }
     return render(request, 'pages/home.html', context)
 
+# import FillFile ...
 
 def criando(request):
-    
-    return render(request, 'pages/criando.html')
+    target_lang = request.GET.get('lang', request.POST.get('lang', 'pt'))
+    context = {}
 
+    if request.method == 'POST':
+        try:
+            gerador = FillFile(request)
+            data_context = gerador.generate()
+            request.session['ficha_data'] = data_context
+            context = data_context.copy()
+        except Exception as e:
+            print(f"Erro: {e}")
+            return render(request, 'pages/erro.html', {'erro': 'Erro'})
+
+    elif request.method == 'GET':
+        data_context = request.session.get('ficha_data')
+        if not data_context:
+            return redirect('home')
+        context = data_context.copy()
+
+    # --- APLICAÇÃO DAS TRADUÇÕES ---
+    
+    # 1. Carrega os labels (Textos fixos e Perícias)
+    context['labels'] = get_labels(target_lang)
+    
+    # 2. Traduz a lista de Saves (STR -> FOR) dinamicamente
+    # O FillFile gera 'saves', nós criamos uma versão traduzida para exibição
+    if 'saves' in context:
+        context['saves'] = translate_saves_list(context['saves'], target_lang)
+
+    context['current_lang'] = target_lang
+    request.session['ultima_ficha'] = context
+
+    return render(request, 'pages/criando.html', context)
 
 def password_reset_view(request):
     return render(request, 'registration/password_reset.html')

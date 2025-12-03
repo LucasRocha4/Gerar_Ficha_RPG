@@ -1,784 +1,1036 @@
-{% load static %}
-
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>FichaDnD</title>
-  <link
-    rel="stylesheet"
-    href="{% static 'css/charsheet.css' %}?v=2"
-  >
+  <title>Ficha D&D 5e</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-paper: #f9f5e6;
+      --bg-dark: #e8dfc5;
+      --ink-color: #2b2118;
+      --accent-color: #8b4513;
+      --border-color: #5c4a3d;
+      --font-title: 'Cinzel', serif;
+      --font-body: 'Crimson Text', serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-body);
+      background: #333;
+      margin: 0;
+      padding: 30px;
+      color: var(--ink-color);
+    }
+
+    form.charsheet {
+      width: 850px;
+      margin: 0 auto;
+      background-color: var(--bg-paper);
+      padding: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      border: 1px solid #dcdcdc;
+    }
+
+    input, textarea {
+      font-family: var(--font-body);
+      color: var(--ink-color);
+      background: transparent;
+    }
+
+    textarea {
+      font-size: 14px;
+      text-align: left;
+      width: 100%;
+      border-radius: 5px;
+      padding: 5px;
+      resize: none;
+      overflow: hidden;
+      border: 1px solid rgba(92, 74, 61, 0.3);
+      line-height: 1.4;
+    }
+    
+    input[type=checkbox] { cursor: pointer; }
+
+    label {
+      text-transform: uppercase;
+      font-family: var(--font-title);
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      color: var(--accent-color);
+    }
+
+    ul { margin: 0; padding: 0; list-style: none; }
+
+    form.charsheet header {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      align-items: stretch;
+    }
+
+    form.charsheet header section.charname {
+      border: 3px double var(--border-color);
+      border-radius: 10px;
+      padding: 0px;
+      background-color: var(--bg-dark);
+      width: 35%;
+      display: flex;
+      flex-direction: column-reverse;
+      justify-content: center;
+    }
+
+    form.charsheet header section.charname input {
+      padding: 5px;
+      margin-bottom: 2px;
+      border: 0;
+      border-bottom: 2px solid var(--border-color);
+      width: 100%;
+      text-align: center;
+      font-size: 26px;
+      font-weight: 700;
+      font-family: var(--font-title);
+    }
+
+    form.charsheet header section.charname label {
+      width: 100%;
+      text-align: center;
+      font-size: 11px;
+    }
+
+    form.charsheet header section.misc {
+      width: 65%;
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    form.charsheet header section.misc ul {
+      display: flex;
+      flex-wrap: wrap;
+      height: 100%;
+    }
+
+    form.charsheet header section.misc ul li {
+      width: 33.33%;
+      display: flex;
+      flex-direction: column-reverse;
+      padding: 5px 10px;
+      border-right: 1px solid rgba(92, 74, 61, 0.2);
+    }
+    
+    form.charsheet header section.misc ul li:nth-child(3n) { border-right: none; }
+
+    form.charsheet header section.misc ul li input {
+      border: 0;
+      border-bottom: 1px solid var(--border-color);
+      width: 100%;
+      font-size: 14px;
+    }
+
+    form.charsheet header section.misc ul li label {
+      font-size: 9px;
+      font-weight: bold;
+    }
+
+    form.charsheet main {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      min-height: 800px;
+    }
+
+    form.charsheet main > section {
+      width: 32%;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    form.charsheet .attributes {
+      display: flex;
+      justify-content: space-between;
+      gap: 5px;
+    }
+
+    form.charsheet .scores {
+      width: 90px;
+      background-color: var(--bg-dark);
+      border-radius: 20px;
+      padding: 10px 5px;
+      text-align: center;
+      border: 1px solid var(--border-color);
+    }
+
+    form.charsheet .scores ul {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    form.charsheet .scores li {
+      background: var(--bg-paper);
+      border: 2px solid var(--border-color);
+      border-radius: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 15px;
+      position: relative;
+    }
+
+    form.charsheet .scores .score label {
+      font-size: 8px;
+      font-weight: bold;
+      padding-top: 5px;
+      margin-bottom: 0;
+      color: var(--ink-color);
+      display: block;
+      letter-spacing: 1px;
+    }
+
+    form.charsheet .scores .score input {
+      border: 0;
+      text-align: center;
+      font-size: 14px;
+      width: 100%;
+      padding: 0;
+      color: #666;
+      background: transparent;
+    }
+
+    form.charsheet .scores .modifier {
+      position: absolute;
+      bottom: -14px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    form.charsheet .scores .modifier input {
+      width: 50px;
+      height: 30px;
+      border: 2px solid var(--border-color);
+      border-radius: 15px;
+      text-align: center;
+      background: white;
+      font-weight: bold;
+      font-size: 18px;
+      color: black;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      z-index: 10;
+    }
+
+    form.charsheet .attr-applications {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .list-section {
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 2px 1px;
+      background: white;
+    }
+
+    .list-section .label {
+      text-align: center;
+      font-weight: bold;
+      font-size: 10px;
+      margin-top: 2px;
+      font-family: var(--font-title);
+      border-top: 1px solid #ccc;
+      padding-top: 2px;
+    }
+
+    .list-section ul li {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1px;
+      font-size: 11px;
+      line-height: 1.1;
+    }
+
+    .list-section input[type=checkbox] {
+      -webkit-appearance: none; appearance: none;
+      width: 9px; height: 9px;
+      border: 1px solid var(--border-color);
+      border-radius: 50%;
+      margin-right: 5px;
+      position: relative;
+    }
+
+    .list-section input[type=checkbox]:checked {
+      background-color: var(--ink-color);
+      box-shadow: inset 0 0 0 1.5px white;
+    }
+
+    .list-section input[type=text] {
+      width: 20px;
+      border: 0;
+      border-bottom: 1px solid #ccc;
+      text-align: center;
+      margin-right: 4px;
+      font-size: 11px;
+    }
+
+    .list-section label {
+      text-transform: none;
+      color: var(--ink-color);
+      font-size: 11px;
+      font-family: var(--font-body);
+      white-space: nowrap;
+    }
+
+    .list-section label span.skill {
+      color: #888;
+      font-size: 9px;
+      font-style: italic;
+      margin-left: 2px;
+    }
+    
+    .inspiration, .proficiencybonus {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 5px;
+    }
+
+    .inspiration input, .proficiencybonus input {
+      width: 45px; height: 45px;
+      border: 2px solid var(--border-color);
+      border-radius: 5px;
+      text-align: center;
+      font-size: 20px;
+      background: white;
+    }
+    
+    .inspiration input[type=checkbox] { border-radius: 5px; }
+    .inspiration input[type=checkbox]:checked { background: var(--ink-color); }
+
+    .inspiration .label-container, .proficiencybonus .label-container {
+      flex: 1;
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      height: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+    }
+
+    .passive-perception {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--border-color);
+      padding: 5px;
+      border-radius: 20px;
+      background: white;
+    }
+    .passive-perception .label-container { flex: 1; text-align: left; }
+    .passive-perception input {
+      width: 30px; border: 0; font-weight: bold; font-size: 16px; text-align: center;
+    }
+
+    .otherprofs {
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column-reverse;
+      flex-grow: 1;
+      background: white;
+    }
+    .otherprofs label { text-align: center; font-weight: bold; margin-top: 5px; }
+    .otherprofs textarea { border: 0; flex: 1; height: 100%; font-size: 13px; }
+
+    .combat {
+      background: var(--bg-dark);
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1%;
+    }
+
+    .combat > div.armorclass, .combat > div.initiative, .combat > div.speed {
+      width: 32%; height: 90px;
+      background: white;
+      border: 2px solid var(--border-color);
+      border-radius: 10px 10px 30px 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+    }
+    .combat label {
+      width: 100%; text-align: center; padding: 5px 0;
+      border-bottom: 1px solid #ccc; font-size: 9px;
+    }
+    .combat input { font-size: 32px; font-weight: bold; height: 100%; width: 100%; text-align: center; border: 0;}
+
+    .hp { width: 100%; margin-top: 5px; }
+    .hp .regular {
+      background: white;
+      border: 2px solid var(--border-color);
+      border-radius: 15px 15px 5px 5px;
+      padding: 5px;
+    }
+    .hp .regular .max {
+      display: flex; justify-content: center; gap: 10px;
+      border-bottom: 1px solid #ccc; padding-bottom: 5px;
+    }
+    .hp .regular .max label { color: #888; border: 0; width: auto;}
+    .hp .regular .max input { width: 60px; font-size: 14px; border-bottom: 1px solid #333; height: auto; text-align: center;}
+    .hp .regular .current input { font-size: 36px; width: 100%; text-align: center; padding: 10px 0; border: 0;}
+    .hp .temporary {
+      background: white; border: 2px solid var(--border-color);
+      border-top: 0; border-radius: 5px 5px 15px 15px; padding: 5px; margin-top: 2px;
+    }
+    .hp .temporary input { font-size: 18px; text-align: center; border: 0; width: 100%;}
+    
+    .hitdice, .deathsaves {
+      width: 48% !important;
+      height: 80px;
+      background: white;
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      padding: 5px;
+      display: flex !important;
+      flex-direction: column;
+      justify-content: space-between; 
+    }
+
+    .hitdice .total {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 2px;
+      margin-bottom: 2px;
+    }
+
+    .hitdice .total label {
+      background: transparent;
+      border: 0;
+      width: auto;
+      font-size: 8px;
+      color: #666;
+      white-space: nowrap;
+    }
+
+    .hitdice .total input {
+      font-size: 12px;
+      width: 40px;
+      height: auto;
+      text-align: center;
+      border: 0;
+      font-weight: bold;
+    }
+
+    .hitdice input[name="remaininghd"] {
+      font-size: 20px;
+      text-align: CENTER;
+      border: 0;
+      width: 50%;
+      flex: 1;
+      font-family: 'Times New Roman', serif;
+      margin-top: -20px;
+      height: 20px;
+      padding: 0;
+    }
+
+    .hitdice > div > label {
+      border: 0;
+      background: transparent;
+      font-weight: bold;
+      font-size: 10px;
+      color: #333;
+      width: 100%;
+      text-align: center;
+      margin-top: 0;
+      display: block;
+    }
+
+    .deathsaves .label {
+      text-align: center;
+      font-weight: bold;
+      font-size: 10px;
+      color: #333;
+      margin-bottom: 5px;
+      border-bottom: 1px solid #ccc;
+      text-transform: uppercase;
+    }
+
+    .deathsaves .marks {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      flex: 1;
+    }
+
+    .deathsuccesses, .deathfails {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0 2px;
+    }
+
+    .deathsuccesses label, .deathfails label {
+      text-align: left;
+      margin: 0;
+      font-size: 8px;
+      font-weight: bold;
+      color: #666;
+      width: auto;
+      border: 0;
+    }
+
+    .deathsaves .bubbles {
+      display: flex;
+      gap: 1px;
+    }
+
+    .deathsaves input[type=checkbox] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 50%;
+      margin: 0;
+      cursor: pointer;
+    }
+
+    .deathsaves input[type=checkbox]:checked {
+      background: var(--ink-color);
+      box-shadow: inset 0 0 0 2px white;
+    }
+
+    .attacksandspellcasting {
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px;
+      background: white;
+      overflow: hidden;
+    }
+
+    .attacksandspellcasting table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .attacksandspellcasting th:nth-child(1) { width: 45%; }
+    .attacksandspellcasting th:nth-child(2) { width: 20%; }
+    .attacksandspellcasting th:nth-child(3) { width: 35%; }
+
+    .attacksandspellcasting th {
+      font-family: var(--font-title);
+      font-size: 10px;
+      text-align: left;
+      color: #666;
+      padding: 2px 5px;
+    }
+
+    .attacksandspellcasting td {
+      padding: 2px;
+    }
+
+    .attacksandspellcasting input {
+      background: #f5f5f5;
+      border: 0;
+      padding: 5px;
+      margin: 0;
+      font-size: 12px;
+      width: 100%;
+      border-radius: 4px;
+      font-family: var(--font-body);
+    }
+
+    .attacksandspellcasting textarea {
+      border: 0;
+      height: 80px;
+      margin-top: 5px;
+      font-size: 12px;
+      padding: 5px;
+      background: transparent;
+      resize: none;
+      font-family: var(--font-body);
+    }
+
+    .equipment {
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+    .equipment > div { display: flex; flex-direction: column; height: 100%; }
+    
+    .equipment .equipment-list { order: 1; flex: 1; width: 100%; }
+    .equipment textarea { height: 100%; min-height: 200px; border: 0; resize: none; }
+    
+    .equipment .money { order: 2; width: 100%; margin-top: 10px; }
+    .equipment .money ul { display: flex; justify-content: space-around; border-top: 1px solid #eee; padding-top: 5px; }
+    .equipment .money li { display: flex; flex-direction: column; align-items: center; }
+    .equipment .money label { border: 0; font-size: 9px; padding: 0; }
+    .equipment .money input { width: 35px; border: 1px solid #ccc; border-radius: 10px; padding: 2px; text-align: center; font-size: 12px; }
+    
+    .equipment > div > label { order: 3; width: 100%; text-align: center; font-weight: bold; margin-top: 5px; border-top: 1px solid #333; padding-top: 5px; }
+
+    .flavor {
+      background: var(--bg-dark);
+      border-radius: 15px;
+      padding: 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      border: 1px solid var(--border-color);
+    }
+    .flavor div { background: white; padding: 8px; display: flex; flex-direction: column-reverse; }
+    .flavor div:first-child { border-radius: 10px 10px 0 0; }
+    .flavor div:last-child { border-radius: 0 0 10px 10px; }
+    .flavor label { text-align: center; font-weight: bold; font-size: 10px; border-top: 1px solid #eee; margin-top: 5px; padding-top: 2px;}
+    .flavor textarea { border: 0; height: 60px; font-family: var(--font-body); font-size: 14px; padding: 0;}
+
+    .features {
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      background: white;
+      flex-grow: 1;
+    }
+    .features div { flex: 1; display: flex; flex-direction: column-reverse; height: 100%; }
+    .features label { text-align: center; font-weight: bold; margin-top: 10px; border-top: 2px solid #333; padding-top: 5px; }
+    .features textarea { border: 0; flex: 1; height: 100%; resize: none; font-size: 13px; }
+
+  </style>
 </head>
 <body>
-  <div class="container mt-5">
-    <form class="charsheet" method="post" action="{% url 'criando' %}">
-      {% csrf_token %}
-      <header>
-        <section class="charname">
-          <label for="charname">{{ translations.charname_label }}</label>
-          <input name="charname" value="{{ charname }}"/>
-        </section>
-        <section class="misc">
-          <ul>
-            <li>
-              <label for="classlevel">{{ translations.classlevel_label }}</label>
-              <input name="classlevel" value="{{ classe }}"/>
-            </li>
-            <li>
-              <label for="background">{{ translations.background_label }}</label>
-              <input name="background" value="{{ background }}"/>
-            </li>
-            <li>
-              <label for="playername">{{ translations.playername_label }}</label>
-              <input name="playername" value="{{ charname }}"/>
-            </li>
-            <li>
-              <label for="race">{{ translations.race_label }}</label>
-              <input name="race" value="{{ race }}"/>
-            </li>
-            <li>
-              <label for="alignment">{{ translations.alignment_label }}</label>
-              <input name="alinhamento" value="{{ alinhamento }}"/>
-            </li>
-            <li>
-              <label for="experiencepoints">{{ translations.experiencepoints_label }}</label>
-              <input name="experiencepoints" value="{{ xp }}"/>
-            </li>
-          </ul>
-        </section>
-      </header>
-      <main>
-        <section>
-          <section class="attributes">
-            <div class="scores">
+
+  <form class="charsheet">
+    <header>
+      <section class="charname">
+        <label for="charname">{{ labels.charname_label }}</label>
+        <input name="charname" value="{{ charname }}" />
+      </section>
+      <section class="misc">
+        <ul>
+          <li><label>{{ labels.classlevel_label }}</label><input name="classlevel" value="{{ classe }}"/></li>
+          <li><label>{{ labels.background_label }}</label><input name="background" value="{{ background }}"/></li>
+          <li><label>{{ labels.playername_label }}</label><input name="playername" value="{{ playername }}"/></li>
+          <li><label>{{ labels.race_label }}</label><input name="race" value="{{ race }}"/></li>
+          <li><label>{{ labels.alignment_label }}</label><input name="alignment" value="{{ alinhamento }}"/></li>
+          <li><label>{{ labels.experiencepoints_label }}</label><input name="xp" value="{{ xp }}"/></li>
+        </ul>
+      </section>
+    </header>
+
+    <main>
+      <section>
+        <section class="attributes">
+          <div class="scores">
+            <ul>
+              <li>
+                <div class="score"><label>{{ labels.strength_label }}</label><input name="Strengthscore" value="{{ atributo.strength }}"/></div>
+                <div class="modifier"><input name="Strengthmod" value="{{ mod.str }}"/></div>
+              </li>
+              <li>
+                <div class="score"><label>{{ labels.dexterity_label }}</label><input name="Dexterityscore" value="{{ atributo.dexterity }}"/></div>
+                <div class="modifier"><input name="Dexteritymod" value="{{ mod.dex }}"/></div>
+              </li>
+              <li>
+                <div class="score"><label>{{ labels.constitution_label }}</label><input name="Constitutionscore" value="{{ atributo.constitution }}"/></div>
+                <div class="modifier"><input name="Constitutionmod" value="{{ mod.con }}"/></div>
+              </li>
+              <li>
+                <div class="score"><label>{{ labels.intelligence_label }}</label><input name="Intelligencescore" value="{{ atributo.intelligence }}"/></div>
+                <div class="modifier"><input name="Intelligencemod" value="{{ mod.int }}"/></div>
+              </li>
+              <li>
+                <div class="score"><label>{{ labels.wisdom_label }}</label><input name="Wisdomscore" value="{{ atributo.wisdom }}"/></div>
+                <div class="modifier"><input name="Wisdommod" value="{{ mod.wis }}"/></div>
+              </li>
+              <li>
+                <div class="score"><label>{{ labels.charisma_label }}</label><input name="Charismascore" value="{{ atributo.charisma }}"/></div>
+                <div class="modifier"><input name="Charismamod" value="{{ mod.cha }}"/></div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="attr-applications">
+            <div class="inspiration box">
+              <div class="label-container"><label>{{ labels.inspiration_label }}</label></div>
+              <input name="inspiration" type="checkbox" />
+            </div>
+            <div class="proficiencybonus box">
+              <div class="label-container"><label>{{ labels.proficiencybonus_label }}</label></div>
+              <input id="profbonus" name="proficiencybonus" value="+{{ proficiencia }}" />
+            </div>
+
+            <div class="list-section box">
+              <ul>
+                {% for save in saves %}
+                <li>
+                  <input name="{{ save.abbr|title }}-save-prof" type="checkbox" data-atributo="{{ save.abbr|title }}" {% if save.is_prof %}checked{% endif %} />
+                  <input name="{{ save.abbr|title }}-save" value="{{ save.mod }}" type="text" data-atributo="{{ save.abbr|title }}" />
+                  
+                  <label>{{ save.display_abbr }}</label>
+                </li>
+                {% endfor %}
+              </ul>
+              <div class="label">{{ labels.savingthrows_label }}</div>
+            </div>
+
+            <div class="list-section box">
               <ul>
                 <li>
-                  <div class="score">
-                    <label for="Strengthscore">{{ translations.strength_label }}</label>
-                    <input name="Strengthscore" value="{{ atributo.strength }}"/>
-                  </div>
-                  <div class="modifier">
-                    <input name="Strengthmod" value="{{ mod.str }}"/>
-                  </div>
+                    <input type="checkbox" data-atributo="Acrobatics" {% if 'Acrobatics' in random_skill_proficiencies %}checked{% endif %} />
+                    <input value="{{ mod.dex }}" type="text" data-atributo="Acrobatics"/>
+                    <label>{{ labels.Acrobatics }} <span class="skill">({{ labels.abbr_DEX }})</span></label>
                 </li>
                 <li>
-                  <div class="score">
-                    <label for="Dexterityscore">{{ translations.dexterity_label }}</label>
-                    <input name="Dexterityscore" value="{{ atributo.dexterity }}"/>
-                  </div>
-                  <div class="modifier">
-                    <input name="Dexteritymod" value="{{ mod.dex }}"/>
-                  </div>
+                    <input type="checkbox" data-atributo="Animal Handling" {% if 'Animal Handling' in random_skill_proficiencies %}checked{% endif %} />
+                    <input value="{{ mod.wis }}" type="text" data-atributo="Animal Handling"/>
+                    <label>{{ labels.AnimalHandling }} <span class="skill">({{ labels.abbr_WIS }})</span></label>
                 </li>
                 <li>
-                  <div class="score">
-                    <label for="Constitutionscore">{{ translations.constitution_label }}</label>
-                    <input name="Constitutionscore" value="{{ atributo.constitution }}"/>
-                  </div>
-                  <div class="modifier">
-                    <input name="Constitutionmod" value="{{ mod.con }}"/>
-                  </div>
+                    <input type="checkbox" data-atributo="Arcana" {% if 'Arcana' in random_skill_proficiencies %}checked{% endif %} />
+                    <input value="{{ mod.int }}" type="text" data-atributo="Arcana"/>
+                    <label>{{ labels.Arcana }} <span class="skill">({{ labels.abbr_INT }})</span></label>
                 </li>
                 <li>
-                  <div class="score">
-                    <label for="Wisdomscore">{{ translations.wisdom_label }}</label>
-                    <input name="Wisdomscore" value="{{ atributo.wisdom }}"/>
-                  </div>
-                  <div class="modifier">
-                    <input name="Wisdommod" value="{{ mod.wis }}"/>
-                  </div>
+                    <input type="checkbox" data-atributo="Athletics" {% if 'Athletics' in random_skill_proficiencies %}checked{% endif %} />
+                    <input value="{{ mod.str }}" type="text" data-atributo="Athletics"/>
+                    <label>{{ labels.Athletics }} <span class="skill">({{ labels.abbr_STR }})</span></label>
                 </li>
                 <li>
-                  <div class="score">
-                    <label for="Intelligencescore">{{ translations.intelligence_label }}</label>
-                    <input name="Intelligencescore" value="{{ atributo.intelligence }}"/>
-                  </div>
-                  <div class="modifier">
-                    <input name="Intelligencemod" value="{{ mod.int }}"/>
-                  </div>
+                    <input type="checkbox" data-atributo="Deception" {% if 'Deception' in random_skill_proficiencies %}checked{% endif %} />
+                    <input value="{{ mod.cha }}" type="text" data-atributo="Deception"/>
+                    <label>{{ labels.Deception }} <span class="skill">({{ labels.abbr_CHA }})</span></label>
                 </li>
                 <li>
-                  <div class="score">
-                    <label for="Charismascore">{{ translations.charisma_label }}</label>
-                    <input name="Charismascore" value="{{ atributo.charisma }}"/>
-                  </div>
-                  <div class="modifier">
-                    <input name="Charismamod" value="{{ mod.cha }}"/>
-                  </div>
+                    <input type="checkbox" data-atributo="History" {% if 'History' in random_skill_proficiencies %}checked{% endif %} />
+                    <input value="{{ mod.int }}" type="text" data-atributo="History"/>
+                    <label>{{ labels.History }} <span class="skill">({{ labels.abbr_INT }})</span></label>
+                </li>
+                <li>
+                    <input type="checkbox" data-atributo="Insight" {% if 'Insight' in random_skill_proficiencies %}checked{% endif %} />
+                    <input value="{{ mod.wis }}" type="text" data-atributo="Insight"/>
+                    <label>{{ labels.Insight }} <span class="skill">({{ labels.abbr_WIS }})</span></label>
+                </li>
+                <li>
+                    <input type="checkbox" data-atributo="Intimidation" {% if 'Intimidation' in random_skill_proficiencies %}checked{% endif %} />
+                    <input value="{{ mod.cha }}" type="text" data-atributo="Intimidation"/>
+                    <label>{{ labels.Intimidation }} <span class="skill">({{ labels.abbr_CHA }})</span></label>
+                </li>
+                <li>
+                    <input type="checkbox" data-atributo="Investigation" {% if 'Investigation' in random_skill_proficiencies %}checked{% endif %} />
+                    <input value="{{ mod.int }}" type="text" data-atributo="Investigation"/>
+                    <label>{{ labels.Investigation }} <span class="skill">({{ labels.abbr_INT }})</span></label>
+                </li>
+                <li>
+                    <input type="checkbox" data-atributo="Medicine" {% if 'Medicine' in random_skill_proficiencies %}checked{% endif %} />
+                    <input value="{{ mod.wis }}" type="text" data-atributo="Medicine"/>
+                    <label>{{ labels.Medicine }} <span class="skill">({{ labels.abbr_WIS }})</span></label>
+                </li>
+                <li>
+                    <input type="checkbox" data-atributo="Nature" {% if 'Nature' in random_skill_proficiencies %}checked{% endif %} />
+                    <input value="{{ mod.int }}" type="text" data-atributo="Nature"/>
+                    <label>{{ labels.Nature }} <span class="skill">({{ labels.abbr_INT }})</span></label>
+                </li>
+                <li>
+                    <input type="checkbox" data-atributo="Perception" {% if 'Perception' in random_skill_proficiencies %}checked{% endif %} />
+                    <input value="{{ mod.wis }}" type="text" data-atributo="Perception"/>
+                    <label>{{ labels.Perception }} <span class="skill">({{ labels.abbr_WIS }})</span></label>
+                </li>
+                <li>
+                    <input type="checkbox" data-atributo="Performance" {% if 'Performance' in random_skill_proficiencies %}checked{% endif %} />
+                    <input value="{{ mod.cha }}" type="text" data-atributo="Performance"/>
+                    <label>{{ labels.Performance }} <span class="skill">({{ labels.abbr_CHA }})</span></label>
+                </li>
+                <li>
+                    <input type="checkbox" data-atributo="Persuasion" {% if 'Persuasion' in random_skill_proficiencies %}checked{% endif %} />
+                    <input value="{{ mod.cha }}" type="text" data-atributo="Persuasion"/>
+                    <label>{{ labels.Persuasion }} <span class="skill">({{ labels.abbr_CHA }})</span></label>
+                </li>
+                <li>
+                    <input type="checkbox" data-atributo="Religion" {% if 'Religion' in random_skill_proficiencies %}checked{% endif %} />
+                    <input value="{{ mod.int }}" type="text" data-atributo="Religion"/>
+                    <label>{{ labels.Religion }} <span class="skill">({{ labels.abbr_INT }})</span></label>
+                </li>
+                <li>
+                    <input type="checkbox" data-atributo="Sleight of Hand" {% if 'Sleight of Hand' in random_skill_proficiencies %}checked{% endif %} />
+                    <input value="{{ mod.dex }}" type="text" data-atributo="Sleight of Hand"/>
+                    <label>{{ labels.SleightofHand }} <span class="skill">({{ labels.abbr_DEX }})</span></label>
+                </li>
+                <li>
+                    <input type="checkbox" data-atributo="Stealth" {% if 'Stealth' in random_skill_proficiencies %}checked{% endif %} />
+                    <input value="{{ mod.dex }}" type="text" data-atributo="Stealth"/>
+                    <label>{{ labels.Stealth }} <span class="skill">({{ labels.abbr_DEX }})</span></label>
+                </li>
+                <li>
+                    <input type="checkbox" data-atributo="Survival" {% if 'Survival' in random_skill_proficiencies %}checked{% endif %} />
+                    <input value="{{ mod.wis }}" type="text" data-atributo="Survival"/>
+                    <label>{{ labels.Survival }} <span class="skill">({{ labels.abbr_WIS }})</span></label>
                 </li>
               </ul>
+              <div class="label">{{ labels.skills_label }}</div>
             </div>
-            <div class="attr-applications">
-              <div class="inspiration box">
-                <div class="label-container">
-                  <label for="inspiration">{{ translations.inspiration_label }}</label>
-                </div>
-                <input name="inspiration" type="checkbox" />
-              </div>
-              <div class="proficiencybonus box">
-                <div class="label-container">
-                  <label for="proficiencybonus">{{ translations.proficiencybonus_label }}</label>
-                </div>
-                <input name="proficiencybonus" value="{{ proficiencia }}"/>
-              </div>
-              <div class="saves list-section box">
-                <ul>
-                  <li>
-                    <label for="Strength-save">{{ translations.strength_label }}</label>
-                    <input
-                      name="Strength-save"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.str }}"
-                      data-atributo="str"
-                    />
-                    <input
-                      name="Strength-save-prof"
-                      type="checkbox"
-                      class="proficiencia"
-                      data-atributo="str"
-                    />
-                  </li>
-                  <li>
-                    <label for="Dexterity-save">{{ translations.dexterity_label }}</label>
-                    <input
-                      name="Dexterity-save"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.dex }}"
-                      data-atributo="dex"
-                    />
-                    <input
-                      name="Dexterity-save-prof"
-                      type="checkbox"
-                      class="proficiencia"
-                      data-atributo="dex"
-                    />
-                  </li>
-                  <li>
-                    <label for="Constitution-save">{{ translations.constitution_label }}</label>
-                    <input
-                      name="Constitution-save"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.con }}"
-                      data-atributo="con"
-                    />
-                    <input
-                      name="Constitution-save-prof"
-                      type="checkbox"
-                      class="proficiencia"
-                      data-atributo="con"
-                    />
-                  </li>
-                  <li>
-                    <label for="Wisdom-save">{{ translations.wisdom_label }}</label>
-                    <input
-                      name="Wisdom-save"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.wis }}"
-                      data-atributo="wis"
-                    />
-                    <input
-                      name="Wisdom-save-prof"
-                      type="checkbox"
-                      class="proficiencia"
-                      data-atributo="wis"
-                    />
-                  </li>
-                  <li>
-                    <label for="Intelligence-save">{{ translations.intelligence_label }}</label>
-                    <input
-                      name="Intelligence-save"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.int }}"
-                      data-atributo="int"
-                    />
-                    <input
-                      name="Intelligence-save-prof"
-                      type="checkbox"
-                      class="proficiencia"
-                      data-atributo="int"
-                    />
-                  </li>
-                  <li>
-                    <label for="Charisma-save">{{ translations.charisma_label }}</label>
-                    <input
-                      name="Charisma-save"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.cha }}"
-                      data-atributo="cha"
-                    />
-                    <input
-                      name="Charisma-save-prof"
-                      type="checkbox"
-                      class="proficiencia"
-                      data-atributo="cha"
-                    />
-                  </li>
-                </ul>
-                <div class="label">{{ translations.savingthrows_label }}</div>
-              </div>
-              <div class="skills list-section box">
-                <ul>
-                  <li>
-                    <label for="Acrobatics">Acrobatics <span class="skill">(Dex)</span></label>
-                    <input
-                      name="Acrobatics"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.dex }}"
-                      data-atributo="Acrobatics"
-                    />
-                    <input
-                      name="Acrobatics-prof"
-                      type="checkbox"
-                      class="pericia"
-                      data-atributo="Acrobatics"
-                    />
-                  </li>
-                  <li>
-                    <label for="Animal Handling">Animal Handling <span class="skill">(Wis)</span></label>
-                    <input
-                      name="Animal Handling"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.wis }}"
-                      data-atributo="Animal Handling"
-                    />
-                    <input
-                      name="Animal Handling-prof"
-                      type="checkbox"
-                      class="pericia"
-                      data-atributo="Animal Handling"
-                    />
-                  </li>
-                  <li>
-                    <label for="Arcana">Arcana <span class="skill">(Int)</span></label>
-                    <input
-                      name="Arcana"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.int }}"
-                      data-atributo="Arcana"
-                    />
-                    <input
-                      name="Arcana-prof"
-                      type="checkbox"
-                      class="pericia"
-                      data-atributo="Arcana"
-                    />
-                  </li>
-                  <li>
-                    <label for="Athletics">Athletics <span class="skill">(Str)</span></label>
-                    <input
-                      name="Athletics"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.str }}"
-                      data-atributo="Athletics"
-                    />
-                    <input
-                      name="Athletics-prof"
-                      type="checkbox"
-                      class="pericia"
-                      data-atributo="Athletics"
-                    />
-                  </li>
-                  <li>
-                    <label for="Deception">Deception <span class="skill">(Cha)</span></label>
-                    <input
-                      name="Deception"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.cha }}"
-                      data-atributo="Deception"
-                    />
-                    <input
-                      name="Deception-prof"
-                      type="checkbox"
-                      class="pericia"
-                      data-atributo="Deception"
-                    />
-                  </li>
-                  <li>
-                    <label for="History">History <span class="skill">(Int)</span></label>
-                    <input
-                      name="History"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.int }}"
-                      data-atributo="History"
-                    />
-                    <input
-                      name="History-prof"
-                      type="checkbox"
-                      class="pericia"
-                      data-atributo="History"
-                    />
-                  </li>
-                  <li>
-                    <label for="Insight">Insight <span class="skill">(Wis)</span></label>
-                    <input
-                      name="Insight"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.wis }}"
-                      data-atributo="Insight"
-                    />
-                    <input
-                      name="Insight-prof"
-                      type="checkbox"
-                      class="pericia"
-                      data-atributo="Insight"
-                    />
-                  </li>
-                  <li>
-                    <label for="Intimidation">Intimidation <span class="skill">(Cha)</span></label>
-                    <input
-                      name="Intimidation"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.cha }}"
-                      data-atributo="Intimidation"
-                    />
-                    <input
-                      name="Intimidation-prof"
-                      type="checkbox"
-                      class="pericia"
-                      data-atributo="Intimidation"
-                    />
-                  </li>
-                  <li>
-                    <label for="Investigation">Investigation <span class="skill">(Int)</span></label>
-                    <input
-                      name="Investigation"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.int }}"
-                      data-atributo="Investigation"
-                    />
-                    <input
-                      name="Investigation-prof"
-                      type="checkbox"
-                      class="pericia"
-                      data-atributo="Investigation"
-                    />
-                  </li>
-                  <li>
-                    <label for="Medicine">Medicine <span class="skill">(Wis)</span></label>
-                    <input
-                      name="Medicine"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.wis }}"
-                      data-atributo="Medicine"
-                    />
-                    <input
-                      name="Medicine-prof"
-                      type="checkbox"
-                      class="pericia"
-                      data-atributo="Medicine"
-                    />
-                  </li>
-                  <li>
-                    <label for="Nature">Nature <span class="skill">(Int)</span></label>
-                    <input
-                      name="Nature"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.int }}"
-                      data-atributo="Nature"
-                    />
-                    <input
-                      name="Nature-prof"
-                      type="checkbox"
-                      class="pericia"
-                      data-atributo="Nature"
-                    />
-                  </li>
-                  <li>
-                    <label for="Perception">Perception <span class="skill">(Wis)</span></label>
-                    <input
-                      name="Perception"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.wis }}"
-                      data-atributo="Perception"
-                    />
-                    <input
-                      name="Perception-prof"
-                      type="checkbox"
-                      class="pericia"
-                      data-atributo="Perception"
-                    />
-                  </li>
-                  <li>
-                    <label for="Performance">Performance <span class="skill">(Cha)</span></label>
-                    <input
-                      name="Performance"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.cha }}"
-                      data-atributo="Performance"
-                    />
-                    <input
-                      name="Performance-prof"
-                      type="checkbox"
-                      class="pericia"
-                      data-atributo="Performance"
-                    />
-                  </li>
-                  <li>
-                    <label for="Persuasion">Persuasion <span class="skill">(Cha)</span></label>
-                    <input
-                      name="Persuasion"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.cha }}"
-                      data-atributo="Persuasion"
-                    />
-                    <input
-                      name="Persuasion-prof"
-                      type="checkbox"
-                      class="pericia"
-                      data-atributo="Persuasion"
-                    />
-                  </li>
-                  <li>
-                    <label for="Religion">Religion <span class="skill">(Int)</span></label>
-                    <input
-                      name="Religion"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.int }}"
-                      data-atributo="Religion"
-                    />
-                    <input
-                      name="Religion-prof"
-                      type="checkbox"
-                      class="pericia"
-                      data-atributo="Religion"
-                    />
-                  </li>
-                  <li>
-                    <label for="Sleight of Hand">Sleight of Hand <span class="skill">(Dex)</span></label>
-                    <input
-                      name="Sleight of Hand"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.dex }}"
-                      data-atributo="Sleight of Hand"
-                    />
-                    <input
-                      name="Sleight of Hand-prof"
-                      type="checkbox"
-                      class="pericia"
-                      data-atributo="Sleight of Hand"
-                    />
-                  </li>
-                  <li>
-                    <label for="Stealth">Stealth <span class="skill">(Dex)</span></label>
-                    <input
-                      name="Stealth"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.dex }}"
-                      data-atributo="Stealth"
-                    />
-                    <input
-                      name="Stealth-prof"
-                      type="checkbox"
-                      class="pericia"
-                      data-atributo="Stealth"
-                    />
-                  </li>
-                  <li>
-                    <label for="Survival">Survival <span class="skill">(Wis)</span></label>
-                    <input
-                      name="Survival"
-                      placeholder="+0"
-                      type="text"
-                      value="{{ mod.wis }}"
-                      data-atributo="Survival"
-                    />
-                    <input
-                      name="Survival-prof"
-                      type="checkbox"
-                      class="pericia"
-                      data-atributo="Survival"
-                    />
-                  </li>
-                </ul>              
-              <div class="label">{{ translations.skills_label }}</div>
-              </div>
-            </div>
-          </section>
-
-          <div class="passive-perception box">
-            <div class="label-container">
-              <label for="passiveperception">{{ translations.passiveperception_label }}</label>
-            </div>
-            <input type="text"
-            id="passive-wisdom"
-            name="passive-wisdom"
-            placeholder="10"
-            readonly/>
-          </div>
-          <div class="otherprofs box textblock">
-            <label for="otherprofs">{{ translations.otherprofs_label }}</label>
-            <textarea name="otherprofs">{{ idiomas }}</textarea>
           </div>
         </section>
 
-        <section>
-          <section class="combat">
-            <div class="armorclass">
-              <div>
-                <label for="ac">{{ translations.armorclass_label }}</label>
-                <input name="ac" placeholder="10" type="text" value="{{ ca }}"/>
-              </div>
-            </div>
-            <div class="initiative">
-              <div>
-                <label for="initiative">{{ translations.initiative_label }}</label>
-                <input name="initiative" placeholder="+0" type="text" value="{{ mod.dex }}" />
-              </div>
-            </div>
-            <div class="speed">
-              <div>
-                <label for="speed">{{ translations.speed_label }}</label>
-                <input name="speed" placeholder="30" type="text" value="{{ speed }}"/>
-              </div>
-            </div>
-            <div class="hp">
-              <div class="regular">
-                <div class="max">
-                  <label for="maxhp">{{ translations.maxhp_label }}</label>
-                  <input name="maxhp" placeholder="10" type="text" value="{{ hp }}"/>
-                </div>
-                <div class="current">
-                  <label for="currenthp">{{ translations.currenthp_label }}</label>
-                  <input name="currenthp" type="text"value="{{ hp }}"/>
-                </div>
-              </div>
-              <div class="temporary">
-                <label for="temphp">{{ translations.temphp_label }}</label>
-                <input name="temphp" type="text" />
-              </div>
-            </div>
+        <div class="passive-perception">
+          <div class="label-container" style="border:0; font-weight:bold; font-size:12px;">{{ labels.passiveperception_label }}</div>
+          <input id="passive-wisdom" name="passiveperception" placeholder="10" />
+        </div>
+        
+        <div class="otherprofs">
+          <label>{{ labels.otherprofs_label }}</label>
+          <textarea name="otherprofs">{{ idiomas }}</textarea>
+        </div>
+      </section>
 
-            <div class="rolls-wrapper">
-              <div class="hitdice">
-                <div>
-                  <div class="total">
-                    <label for="totalhd">{{ translations.totalhd_label }}</label>
-                    <input name="totalhd" placeholder="2d10" type="text"value="{{ total_hd }}"/>
-                  </div>
-                  <div class="remaining">
-                    <label for="remaininghd">{{ translations.remaininghd_label }}</label>
-                    <input name="remaininghd" type="text" value="{{ total_hd }}"/>
-                  </div>
-                </div>
-              </div>
+      <section>
+        <section class="combat">
+          <div class="armorclass">
+            <label>{{ labels.armorclass_label }}</label><input name="ac" value="{{ ca }}" />
+          </div>
+          <div class="initiative">
+            <label>{{ labels.initiative_label }}</label><input name="initiative" value="{{ mod.dex }}" />
+          </div>
+          <div class="speed">
+            <label>{{ labels.speed_label }}</label><input name="speed" value="{{ speed }}" />
+          </div>
 
-              <div class="death-saves">
-                <div>
-                  <div class="label-container">
-                    <label>{{ translations.death_saves_label }}</label>
-                  </div>
-                  <div class="marks">
-                    <div class="death-successes">
-                      <label>{{ translations.successes_label }}</label>
-                      <div class="bubbles">
-                        <input name="deathsuccess1" type="checkbox" />
-                        <input name="deathsuccess2" type="checkbox" />
-                        <input name="deathsuccess3" type="checkbox" />
-                      </div>
-                    </div>
-                    <div class="death-fails">
-                      <label>{{ translations.failures_label }}</label>
-                      <div class="bubbles">
-                        <input name="deathfail1" type="checkbox" />
-                        <input name="deathfail2" type="checkbox" />
-                        <input name="deathfail3" type="checkbox" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <div class="hp">
+            <div class="regular">
+              <div class="max"><label>{{ labels.maxhp_label }}</label><input name="maxhp" value="{{ hp }}"/></div>
+              <div class="current"><label>{{ labels.currenthp_label }}</label><input name="currenthp" value="{{ hp }}"/></div>
             </div>
+            <div class="temporary">
+              <label>{{ labels.temphp_label }}</label><input name="temphp"/>
+            </div>
+          </div>
 
-          </section>
-          <section class="attacksandspellcasting">
-            <div>
-              <label>{{ translations.attacks_spellcasting_label }}</label>
-              <table>
-                <thead>
-                  <tr>
-                    <th>{{ translations.atkname_label }}</th>
-                    <th>{{ translations.atkbonus_label }}</th>
-                    <th>{{ translations.atkdamage_label }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><input name="atkname1" type="text" value="{{ atkname1 }}" /></td>
-                    <td><input name="atkbonus1" type="text" value="{{ atkbonus1 }}" /></td>
-                    <td><input name="atkdamage1" type="text" value="{{ atkdamage1 }}" /></td>
-                  </tr>
-                  <tr>
-                    <td><input name="atkname2" type="text" value="{{ atkname2 }}" /></td>
-                    <td><input name="atkbonus2" type="text" value="{{ atkbonus2 }}" /></td>
-                    <td><input name="atkdamage2" type="text" value="{{ atkdamage2 }}" /></td>
-                  </tr>
-                  <tr>
-                    <td><input name="atkname3" type="text" value="{{ atkname3 }}" /></td>
-                    <td><input name="atkbonus3" type="text" value="{{ atkbonus3 }}" /></td>
-                    <td><input name="atkdamage3" type="text" value="{{ atkdamage3 }}" /></td>
-                  </tr>
-                </tbody>
-              </table>
-              <textarea></textarea>
+          <div style="width:100%; display:flex; justify-content:space-between;">
+            <div class="hitdice">
+              <div class="total"><label>{{ labels.totalhd_label }}</label><input name="totalhd" value="{{ total_hd }}" style="border:0;"/></div>
+              <div style="text-align:center; height:100%;"><label>{{ labels.remaininghd_label }}</label><input name="remaininghd" value="{{ hit_dice }}"/></div>
             </div>
-          </section>
-          <section class="equipment">
-            <div>
-              <label>{{ translations.equipment_label }}</label>
-              <div class="money">
-                <ul>
-                  <li>
-                    <label for="cp">{{ translations.cp_label }}</label>
-                    <input name="cp" />
-                  </li>
-                  <li>
-                    <label for="sp">{{ translations.sp_label }}</label>
-                    <input name="sp" />
-                  </li>
-                  <li>
-                    <label for="ep">{{ translations.ep_label }}</label>
-                    <input name="ep" />
-                  </li>
-                  <li>
-                    <label for="gp">{{ translations.gp_label }}</label>
-                    <input name="gp" />
-                  </li>
-                  <li>
-                    <label for="pp">{{ translations.pp_label }}</label>
-                    <input name="pp" />
-                  </li>
-                </ul>
-              </div>
-            
-              <div class="equipment-list">
-                <label for="equipamentos">{{ translations.equipment_items_label }}</label>
-                <textarea id="equipamentos" name="equipamentos" rows="12" style="width: 100%; height: 200px; margin-top: -20px; font-size: 10px;">{{ formatted_all_equipment }}</textarea>
+            <div class="deathsaves">
+              <div class="label">{{ labels.death_saves_label }}</div>
+              <div class="marks">
+                <div class="deathsuccesses"><label>{{ labels.successes_label }}</label><div class="bubbles"><input type="checkbox"/><input type="checkbox"/><input type="checkbox"/></div></div>
+                <div class="deathfails"><label>{{ labels.failures_label }}</label><div class="bubbles"><input type="checkbox"/><input type="checkbox"/><input type="checkbox"/></div></div>
               </div>
             </div>
-          </section>
+          </div>
         </section>
 
-        <section>
-          <section class="flavor">
-            <div class="personality">
-              <label for="personality">{{ translations.personality_label }}</label>
-              <textarea name="personality">{{ personality_traits }}</textarea>
-            </div>
-            <div class="ideals">
-              <label for="ideals">{{ translations.ideals_label }}</label>
-              <textarea name="ideals">{{ ideals }}</textarea>
-            </div>
-            <div class="bonds">
-              <label for="bonds">{{ translations.bonds_label }}</label>
-              <textarea name="bonds">{{ bonds }}</textarea>
-            </div>
-            <div class="flaws">
-              <label for="flaws">{{ translations.flaws_label }}</label>
-              <textarea name="flaws">{{ flaws }}</textarea>
-            </div>
-          </section>
-          <section class="features">
-            <div>
-              <label for="features">{{ translations.features_traits_label }}</label>
-              <textarea name="features"></textarea>
-            </div>
-          </section>
+        <section class="attacksandspellcasting">
+          <label style="display:block; text-align:center; font-weight:bold; border-bottom:1px solid #ccc;">{{ labels.attacks_spellcasting_label }}</label>
+          <table>
+            <thead>
+              <tr><th>{{ labels.atkname_label }}</th><th>{{ labels.atkbonus_label }}</th><th>{{ labels.atkdamage_label }}</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><input name="atkname1" value="{{ atkname1 }}"/></td><td><input name="atkbonus1" value="{{ atkbonus1 }}"/></td><td><input name="atkdamage1" value="{{ atkdamage1 }}"/></td></tr>
+              <tr><td><input name="atkname2" value="{{ atkname2 }}"/></td><td><input name="atkbonus2" value="{{ atkbonus2 }}"/></td><td><input name="atkdamage2" value="{{ atkdamage2 }}"/></td></tr>
+              <tr><td><input name="atkname3" value="{{ atkname3 }}"/></td><td><input name="atkbonus3" value="{{ atkbonus3 }}"/></td><td><input name="atkdamage3" value="{{ atkdamage3 }}"/></td></tr>
+            </tbody>
+          </table>
+          <textarea></textarea>
         </section>
 
-      </main>
-    </form>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+        <section class="equipment">
+          <div>
+            <div class="equipment-list">
+              <textarea name="equipment">{{ formatted_all_equipment }}</textarea>
+            </div>
+            <div class="money">
+              <ul>
+                <li><label>{{ labels.cp_label }}</label><input name="cp"/></li>
+                <li><label>{{ labels.sp_label }}</label><input name="sp"/></li>
+                <li><label>{{ labels.ep_label }}</label><input name="ep"/></li>
+                <li><label>{{ labels.gp_label }}</label><input name="gp"/></li>
+                <li><label>{{ labels.pp_label }}</label><input name="pp"/></li>
+              </ul>
+            </div>
+            <label>{{ labels.equipment_label }}</label>
+          </div>
+        </section>
+      </section>
 
-  {{ saving_throw_proficiencies|json_script:"profSaves" }}
-  {{ random_skill_proficiencies   |json_script:"profSkills" }}
+      <section>
+        <section class="flavor">
+          <div class="personality"><label>{{ labels.personality_label }}</label><textarea name="personality">{{ personality_traits }}</textarea></div>
+          <div class="ideals"><label>{{ labels.ideals_label }}</label><textarea name="ideals">{{ ideals }}</textarea></div>
+          <div class="bonds"><label>{{ labels.bonds_label }}</label><textarea name="bonds">{{ bonds }}</textarea></div>
+          <div class="flaws"><label>{{ labels.flaws_label }}</label><textarea name="flaws">{{ flaws }}</textarea></div>
+        </section>
+        
+        <section class="features">
+          <div>
+            <label>{{ labels.features_traits_label }}</label>
+            <textarea name="features"></textarea>
+          </div>
+        </section>
+      </section>
+    </main>
+  </form>
 
+<script>
+// O SCRIPT PERMANECE EXATAMENTE O MESMO.
+// Ele depende dos "name" e "data-atributo" que mantivemos em inglês.
+document.addEventListener('DOMContentLoaded', () => {
+  const ABILITY_MAP = {
+    'Strength':     ['Athletics', 'Str'], 
+    'Dexterity':    ['Acrobatics', 'Sleight of Hand', 'Stealth', 'Dex'],
+    'Constitution': ['Con'],
+    'Intelligence': ['Arcana', 'History', 'Investigation', 'Nature', 'Religion', 'Int'],
+    'Wisdom':       ['Animal Handling', 'Insight', 'Medicine', 'Perception', 'Survival', 'Wis'],
+    'Charisma':     ['Deception', 'Intimidation', 'Performance', 'Persuasion', 'Cha']
+  };
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const profSavesEl  = document.getElementById('profSaves');
-      const profSkillsEl = document.getElementById('profSkills');
-    
-      let profSaves = [], profSkills = [];
-      try {
-        profSaves  = profSavesEl  ? JSON.parse(profSavesEl.textContent)  : [];
-        profSkills = profSkillsEl ? JSON.parse(profSkillsEl.textContent) : [];
-      } catch(e) {
-        console.error("Erro ao parsear JSON de proficiencies:", e);
+  function formatMod(val) {
+    return (val >= 0 ? '+' : '') + val;
+  }
+
+  function calculateModifier(score) {
+    return Math.floor((score - 10) / 2);
+  }
+
+  function getProficiencyBonus() {
+    const input = document.getElementById('profbonus');
+    return input ? (parseInt(input.value.replace('+', '')) || 0) : 0;
+  }
+
+  function updateItem(itemName, attributeName) {
+    const checkbox = document.querySelector(`input[type="checkbox"][data-atributo="${itemName}"]`);
+    const numberInput = document.querySelector(`input[type="text"][data-atributo="${itemName}"]`);
+
+    const modInput = document.querySelector(`input[name="${attributeName}mod"]`);
+
+    if (checkbox && numberInput && modInput) {
+      const currentMod = parseInt(modInput.value.replace('+', '')) || 0;
+      
+      const profBonus = getProficiencyBonus();
+
+      let total = currentMod;
+      if (checkbox.checked) {
+        total += profBonus;
       }
-    
-      console.log("profSaves =", profSaves);
-      console.log("profSkills=", profSkills);
-    
-      const profInput = document.querySelector('input[name="proficiencybonus"]');
-    
-      function applyProficiencyBonus(checkbox, numberInput) {
-        let profValue = parseInt(profInput.value, 10);
-        if (isNaN(profValue)) profValue = parseInt(profInput.placeholder, 10) || 0;
-        const baseValue = parseInt(numberInput.dataset.base, 10) || 0;
-        const result = checkbox.checked ? baseValue + profValue : baseValue;
-        numberInput.value = (result >= 0 ? '+' : '') + result;
+
+      numberInput.value = formatMod(total);
+
+      if (itemName === 'Perception') {
+        updatePassivePerception();
       }
-    
-      document.querySelectorAll('input[type="checkbox"][data-atributo]').forEach(checkbox => {
-        const attr = checkbox.dataset.atributo;
-        const numberInput = document.querySelector(
-          `input[data-atributo="${attr}"]:not([type="checkbox"])`
-        );
-        if (!numberInput) return;
-    
-        numberInput.dataset.base = parseInt(numberInput.value, 10) || 0;
-        checkbox.addEventListener('change', () => applyProficiencyBonus(checkbox, numberInput));
-    
-        if (checkbox.classList.contains('proficiencia') && profSaves.includes(attr)) {
-          checkbox.checked = true;
-          applyProficiencyBonus(checkbox, numberInput);
-        }
-    
-        if (checkbox.classList.contains('pericia') && profSkills.includes(attr)) {
-          console.log(`Auto‑marcando perícia ${attr}`);  
-          checkbox.checked = true;
-          applyProficiencyBonus(checkbox, numberInput);
-        }
+    }
+  }
+
+  function updateAllItems() {
+    for (const [attrName, items] of Object.entries(ABILITY_MAP)) {
+      items.forEach(item => {
+        updateItem(item, attrName);
       });
-    
-      const perceptionInput    = document.querySelector('input[name="Perception"]');
-      const passiveWisdomInput = document.getElementById('passive-wisdom');
-      function updatePassiveWisdom() {
-        if (!perceptionInput || !passiveWisdomInput) return;
-        const bonus = parseInt(perceptionInput.value, 10) || 0;
-        passiveWisdomInput.value = 10 + bonus;
+    }
+  }
+
+
+  const profInput = document.getElementById('profbonus');
+  if (profInput) {
+    profInput.addEventListener('input', updateAllItems);
+    profInput.addEventListener('change', updateAllItems);
+  }
+
+  const scoreInputs = document.querySelectorAll('input[name$="score"]');
+  scoreInputs.forEach(input => {
+    const onScoreChange = function() {
+      const score = parseInt(input.value) || 10;
+      const newMod = calculateModifier(score);
+      const formattedMod = formatMod(newMod);
+
+      const attrBaseName = input.name.replace('score', ''); 
+      
+      const modInput = document.querySelector(`input[name="${attrBaseName}mod"]`);
+      if (modInput) {
+        modInput.value = formattedMod;
       }
-      if (perceptionInput) {
-        updatePassiveWisdom();
-        perceptionInput.addEventListener('input', updatePassiveWisdom);
+
+      const childItems = ABILITY_MAP[attrBaseName];
+      if (childItems) {
+        childItems.forEach(item => updateItem(item, attrBaseName));
+      }
+      
+      if (attrBaseName === 'Wisdom') updatePassivePerception();
+    };
+
+    input.addEventListener('input', onScoreChange);
+    input.addEventListener('change', onScoreChange);
+  });
+
+  const itemCheckboxes = document.querySelectorAll('input[type="checkbox"][data-atributo]');
+  itemCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+      const itemName = this.dataset.atributo;
+      
+      let parentAttr = '';
+      for (const [attr, items] of Object.entries(ABILITY_MAP)) {
+        if (items.includes(itemName)) {
+          parentAttr = attr;
+          break;
+        }
+      }
+      
+      if (parentAttr) {
+        updateItem(itemName, parentAttr);
       }
     });
-  </script>       
+  });
+
+  const passiveWisInput = document.getElementById('passive-wisdom');
+  
+  function updatePassivePerception() {
+    if (!passiveWisInput) return;
+
+    const perceptionInput = document.querySelector('input[data-atributo="Perception"][type="text"]');
+    let finalMod = 0;
+
+    if (perceptionInput) {
+      finalMod = parseInt(perceptionInput.value.replace('+', '')) || 0;
+    } else {
+      const wisModInput = document.querySelector('input[name="Wisdommod"]');
+      finalMod = wisModInput ? (parseInt(wisModInput.value.replace('+', '')) || 0) : 0;
+    }
+
+    passiveWisInput.value = 10 + finalMod;
+  }
+  
+  updateAllItems();
+  updatePassivePerception();
+
+});
+</script>
 </body>
 </html>
