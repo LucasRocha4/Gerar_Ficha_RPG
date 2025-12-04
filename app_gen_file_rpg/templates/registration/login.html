@@ -1,138 +1,262 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FichaDnD</title>
-  <meta name="description" content="A minimalist RPG-themed login portal with dark aesthetics"/>
+  <title>Portão da Guilda</title>
+  
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
   <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Mate+SC&family=Crimson+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+
 <style>
-  body { background-color: #141415; color: white; }
-  @font-face {
-    font-family: 'RPGFont';
-    src: url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+  :root {
+      --gold-primary: #d4af37;
+      --gold-dim: #8a7326;
+      --bg-dark: #0a0a0c;
+      --panel-bg: rgba(20, 20, 25, 0.95);
+      --crimson: #8a0303;
+      --crimson-light: #b91212;
+      --text-main: #e0d8c3;
   }
-  .rpg-border {
-    border: 2px solid #bbb;
-    box-shadow: 4px 4px 0px #fff;
+
+  body { 
+    background-color: var(--bg-dark);
+    background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #000000 100%);
+    color: var(--text-main); 
+    font-family: 'Crimson Pro', serif;
+    overflow-x: hidden;
   }
-  .loading-dots::after {
-    content: '';
-    animation: dots 1.5s infinite;
-  }
-  @keyframes dots {
-    0%, 20% { content: ''; }
-    40% { content: '.'; }
-    60% { content: '..'; }
-    80% { content: '...'; }
-  }
-  .btn-text {
+
+  /* Fontes Temáticas */
+  h1, h2, label, button { font-family: 'Cinzel', serif; }
+  .subtitle { font-family: 'Mate SC', serif; }
+
+  /* Container Principal - O Grimório */
+  .arcane-border {
+    background-color: var(--panel-bg);
+    border: 2px solid var(--gold-dim);
+    box-shadow: 
+        0 0 15px rgba(0,0,0,0.8),
+        inset 0 0 50px rgba(0,0,0,0.8),
+        0 0 10px rgba(212, 175, 55, 0.2); /* Brilho dourado sutil */
+    border-radius: 4px;
     position: relative;
+    clip-path: polygon(
+      0 0, 100% 0, 100% 100%, 0 100%, 
+      0 15px, 15px 0 /* Canto cortado */
+    );
   }
-  .btn-text::after {
-    content: '';
+
+  /* Detalhes Dourados nos Cantos */
+  .corner-decoration {
     position: absolute;
-    width: 0;
-    height: 2px;
-    bottom: -4px;
-    left: 50%;
-    background-color: white;
-    transition: all 0.3s ease-out;
-    transform: translateX(-50%);
+    width: 20px; height: 20px;
+    border: 2px solid var(--gold-primary);
+    transition: all 0.5s ease;
   }
-  button:hover .btn-text::after {
-    width: 100%;
+  .top-right { top: 10px; right: 10px; border-left: none; border-bottom: none; }
+  .bottom-left { bottom: 10px; left: 10px; border-right: none; border-top: none; }
+
+  /* Inputs Mágicos */
+  input {
+    font-family: 'Crimson Pro', serif;
+    background-color: #050505 !important;
+    border: 1px solid #333 !important;
+    border-bottom: 2px solid var(--gold-dim) !important;
+    color: var(--gold-primary) !important;
+    font-size: 1.1rem;
+    transition: all 0.4s ease;
   }
+  
+  input:focus {
+    outline: none;
+    border-bottom-color: var(--gold-primary) !important;
+    box-shadow: 0 5px 15px -10px rgba(212, 175, 55, 0.5);
+    background-color: #0f0f12 !important;
+  }
+  
+  input::placeholder { color: #4a4a4a; font-style: italic; }
+
+  /* Labels */
+  label {
+    color: var(--gold-dim);
+    letter-spacing: 2px;
+    font-size: 0.75rem;
+    text-shadow: 1px 1px 0px #000;
+  }
+
+  /* Botão de Sangue */
+  .btn-arcane {
+    background: linear-gradient(180deg, var(--crimson) 0%, #520000 100%);
+    border: 1px solid #ff4444;
+    color: #ffd700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    text-shadow: 0 2px 2px rgba(0,0,0,0.8);
+    box-shadow: 0 4px 0 #300000;
+  }
+
+  .btn-arcane:hover:not(:disabled) {
+    background: linear-gradient(180deg, var(--crimson-light) 0%, #7a0000 100%);
+    box-shadow: 0 4px 0 #300000, 0 0 15px var(--crimson);
+    transform: translateY(-1px);
+    text-shadow: 0 0 5px #fff;
+  }
+
+  .btn-arcane:active:not(:disabled) {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #300000;
+  }
+
+  .btn-arcane:disabled {
+    filter: grayscale(100%);
+    cursor: wait;
+  }
+
+  /* Links */
+  a, button.link-btn {
+    color: #888;
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+  a:hover, button.link-btn:hover {
+    color: var(--gold-primary);
+    text-shadow: 0 0 8px var(--gold-primary);
+  }
+
+  /* Loading */
+  .loading-rune::after { content: ' ⏳'; animation: spin 2s infinite linear; display: inline-block; }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
+
+  /* Animação de Entrada */
+  .fade-in { animation: fadeIn 0.8s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
 </style>
-  </style>
 </head>
 <body>
   {% include "components/navbar.html" %}
 
-  <div id="app" class="bg-[#141415] min-h-screen flex items-center justify-center p-4 -mt-16">
-    <div class="max-w-md w-full space-y-8 p-8 rpg-border bg-[#1e1e1e] rounded">
-      <div class="text-center">
-        <h1 class="text-2xl font-bold text-white mb-6">
-          <span v-if="isRegistering">[ SAUDAÇÕES ]</span>
-          <span v-else>[ LOGIN ]</span>
+  <div id="app" class="min-h-screen flex items-center justify-center p-4 -mt-16 fade-in">
+    <div class="max-w-md w-full p-10 arcane-border relative z-10">
+      
+      <div class="corner-decoration top-right"></div>
+      <div class="corner-decoration bottom-left"></div>
+
+      <div class="text-center mb-8 border-b border-[#333] pb-4">
+        <h1 class="text-3xl font-bold text-[#d4af37] mb-2 tracking-widest drop-shadow-md">
+          <span v-if="isRegistering">NOVA ALIANÇA</span>
+          <span v-else>PORTÃO DA GUILDA</span>
         </h1>
-        <p class="text-[#bbb] text-sm mb-8">
-          <span v-if="isRegistering">Alto lá viajante! Quem é você?</span>
-          <span v-else>Para cruzar a ponte desvende o "login"! Hehehe...</span>
+        <p class="subtitle text-[#888] text-lg">
+          <span v-if="isRegistering">Inscreva seu nome nos registros antigos.</span>
+          <span v-else>Fale a palavra mágica e entre.</span>
         </p>
       </div>
 
       <form @submit.prevent="handleLogin" class="space-y-6" autocomplete="off">
-        <div>
-          <label class="text-[#bbb] text-sm block mb-2">Nome de usuário</label>
+        
+        <div class="group">
+          <label class="block mb-2 uppercase font-bold">Nome de Usuário</label>
           <input
             v-model="username"
             type="text"
-            class="w-full px-4 py-2 bg-white border-2 border-[#bbb] text-black focus:outline-none focus:border-white rounded"
+            required
+            placeholder="Ex: MestreDosMagos"
+            class="w-full px-4 py-3 rounded-none"
             :disabled="isLoading"
           />
         </div>
 
-        <div v-if="isRegistering">
-          <label class="text-[#bbb] text-sm block mb-2">Email</label>
+        <div v-if="isRegistering" class="group">
+          <label class="block mb-2 uppercase font-bold">Pergaminho Eletrônico (Email)</label>
           <input
             v-model="email"
             type="email"
-            class="w-full px-4 py-2 bg-white border-2 border-[#bbb] text-black focus:outline-none focus:border-white rounded"
+            required
+            placeholder="voce@reino.com"
+            class="w-full px-4 py-3 rounded-none"
             :disabled="isLoading"
           />
         </div>
 
-        <div class="relative">
-          <label class="text-[#bbb] text-sm block mb-2">Senha</label>
+        <div class="relative group">
+          <label class="block mb-2 uppercase font-bold">Palavra-Passe</label>
           <input
             v-model="password"
             :type="showPassword ? 'text' : 'password'"
-            class="w-full px-4 py-2 bg-white border-2 border-[#bbb] text-black focus:outline-none focus:border-white rounded pr-10"
+            required
+            placeholder="••••••••"
+            class="w-full px-4 py-3 rounded-none pr-12"
             :disabled="isLoading"
           />
           <button
             type="button"
             @click="togglePasswordVisibility"
-            class="absolute right-2 top-1/2 transform -translate-y-[40%] text-lg select-none"
+            class="absolute right-3 top-10 text-xl text-[#d4af37] hover:text-white focus:outline-none opacity-50 hover:opacity-100 transition-opacity"
+            tabindex="-1"
           >
-            <span v-if="showPassword">🙈</span>
-            <span v-else>👁️</span>
+            <span v-if="showPassword">👁️</span>
+            <span v-else>🔒</span>
           </button>
         </div>
-          <button
-            type="submit"
-            class="w-full py-3 px-4 bg-[#00087a] hover:brightness-110 text-white font-bold rounded border-2 border-white transition-colors"
-            :disabled="isLoading"
-          >
-            <span v-if="!isLoading" class="btn-text">ENVIAR</span>
-            <span v-else class="loading-dots">Carregando</span>
-          </button>
+
+        <button
+          type="submit"
+          class="w-full py-4 mt-4 btn-arcane rounded-sm font-bold"
+          :disabled="isLoading"
+        >
+          <span v-if="!isLoading">
+            <span v-if="isRegistering">ASSINAR PACTO</span>
+            <span v-else>ABRIR PORTÃO</span>
+          </span>
+          <span v-else class="loading-rune">CONJURANDO</span>
+        </button>
+
       </form>
 
-      <div class="text-center mt-6">
-        <a href="{% url 'password_reset' %}" class="text-[#bbb] hover:text-white text-sm mr-4">Esqueceu a senha?</a>
-        <a href="#" @click.prevent="toggleRegistration" class="text-[#bbb] hover:text-white text-sm">
-          <span v-if="isRegistering">Já faz parte do reino?</span>
-          <span v-else>Novo(a) por aqui?</span>
+      <div class="text-center mt-8 flex flex-col gap-4 text-sm">
+        <a href="{% url 'password_reset' %}" class="hover:underline opacity-70">
+          Esqueceu as runas de acesso?
         </a>
+        
+        <div class="flex items-center justify-center gap-2 text-[#444]">
+          <span>⚔️</span>
+          <button 
+            @click.prevent="toggleRegistration" 
+            class="link-btn text-[#d4af37] font-bold uppercase tracking-wide hover:underline bg-transparent border-0 p-0"
+          >
+            <span v-if="isRegistering">Já tem acesso? Entre.</span>
+            <span v-else>Novo viajante? Registre-se.</span>
+          </button>
+          <span>⚔️</span>
+        </div>
       </div>
+
     </div>
   </div>
 
 <script>
-    // Função auxiliar para pegar o CSRF Token do Django
+    
     function getCookie(name) {
       let cookieValue = null;
       if (document.cookie && document.cookie !== '') {
-        document.cookie.split(';').forEach(c => {
-          c = c.trim();
-          if (c.startsWith(name + '=')) {
-            cookieValue = decodeURIComponent(c.substring(name.length + 1));
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
           }
-        });
+        }
       }
       return cookieValue;
     }
@@ -141,7 +265,6 @@
 
     createApp({
       setup() {
-        // --- Variáveis de Estado (Mantidas iguais) ---
         const username      = ref('');
         const email         = ref('');
         const password      = ref('');
@@ -149,68 +272,62 @@
         const isRegistering = ref(false);
         const showPassword  = ref(false);
 
-        // --- Funções de Interface (Mantidas iguais) ---
         const toggleRegistration = () => {
           isRegistering.value = !isRegistering.value;
+          password.value = '';
         };
+
         const togglePasswordVisibility = () => {
           showPassword.value = !showPassword.value;
         };
 
-        // --- NOVA LÓGICA DE LOGIN ---
         const handleLogin = async () => {
-          // 1. Validações básicas
-          if (isRegistering.value && !username.value) {
-            alert('Informe um nome de usuário');
+          if (!username.value || !password.value) {
+            alert('Os campos de nome e senha são obrigatórios.');
             return;
           }
-          if (!username.value || !password.value) {
-            alert('Preencha o nome de usuário e senha');
+          if (isRegistering.value && !email.value) {
+            alert('O email é necessário para o registro.');
             return;
           }
 
           isLoading.value = true;
 
           try {
-            // 2. Faz apenas UMA requisição para sua view Python
-            // Certifique-se que '/login/submit/' é a URL correta no urls.py
             const response = await fetch('/login/submit/', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken') // Indispensável para segurança Django
+                'X-CSRFToken': getCookie('csrftoken')
               },
               body: JSON.stringify({
                 username: username.value,
                 email: email.value,
                 password: password.value,
-                is_registering: isRegistering.value // True = Cadastro, False = Login
+                is_registering: isRegistering.value
               })
             });
 
             const data = await response.json();
 
-            // 3. Verifica a resposta do Python
             if (data.result === true) {
-              // SUCESSO!
-              // O Python já criou a sessão (login(request, user)).
-              // Agora recarregamos a página para a Home.
-              window.location.href = '/'; 
+              const urlParams = new URLSearchParams(window.location.search);
+              const nextUrl = urlParams.get('next') || '/';
+              window.location.href = nextUrl;
             } else {
-              // ERRO (Ex: Senha errada ou usuário já existe)
-              alert(data.msg || 'Erro ao processar');
+              alert(data.msg || 'A magia falhou (Erro no processo).');
             }
 
           } catch (err) {
             console.error(err);
-            alert('Erro de conexão com o servidor.');
+            alert('Erro de conexão com a guilda.');
           } finally {
             isLoading.value = false;
           }
         };
 
         return {
-          username, password, email,
+          username, email, password,
           isLoading, isRegistering, showPassword,
           toggleRegistration, togglePasswordVisibility,
           handleLogin

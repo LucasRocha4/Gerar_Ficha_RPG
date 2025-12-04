@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Galeria de Heróis - FichaDnD</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Estilos e Fontes -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Mate+SC&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+      --gold-primary: #d4af37;
+      --gold-dim: #8a7326;
+      --gold-bright: #ffdf80;
+      --bg-dark: #0a0a0c;
+      --card-bg: rgba(20, 20, 25, 0.95);
+      --text-main: #e0d8c3;
+      --border-color: #333;
+  }
+
+  body { 
+    background-color: var(--bg-dark);
+    background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #000000 100%);
+    color: var(--text-main); 
+    font-family: 'Crimson Pro', serif;
+    min-height: 100vh;
+  }
+
+  h1, .char-name, .access-hint { font-family: 'Cinzel', serif; }
+  .char-desc { font-family: 'Mate SC', serif; }
+
+  /* Grid Layout */
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 2rem;
+    padding: 2rem 0;
+  }
+
+  /* Cartão do Personagem (Grimório Fechado) */
+  .char-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--gold-dim);
+    border-radius: 4px;
+    height: 320px;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    
+    /* Cantos cortados estilo RPG */
+    clip-path: polygon(
+      0 0, 100% 0, 100% 100%, 0 100%, 
+      0 20px, 20px 0
+    );
+  }
+
+  /* Decoração de Canto Dourado */
+  .card-corner {
+    position: absolute;
+    top: 5px; left: 5px;
+    width: 15px; height: 15px;
+    border-top: 1px solid var(--gold-primary);
+    border-left: 1px solid var(--gold-primary);
+    transition: all 0.3s;
+  }
+
+  /* Estado: Hover (Pré-visualização) */
+  .char-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.7);
+    border-color: var(--gold-primary);
+  }
+
+  /* Estado: Ativo (Expandido/Selecionado) */
+  .char-card.active {
+    border-color: var(--gold-bright);
+    box-shadow: 0 0 25px rgba(212, 175, 55, 0.2);
+    transform: scale(1.02);
+    z-index: 10;
+  }
+
+  /* Área Visual (Ícone) */
+  .card-visual {
+    flex: 1;
+    background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* O Ícone/Escudo */
+  .class-icon {
+    width: 80px;
+    height: 80px;
+    color: #555; /* Cinza inicial */
+    transition: all 0.5s ease;
+    filter: drop-shadow(0 0 0 transparent);
+  }
+
+  .char-card:hover .class-icon {
+    color: #888;
+  }
+
+  /* Quando Ativo: Ícone Brilha Dourado */
+  .char-card.active .class-icon {
+    color: var(--gold-primary);
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 15px var(--gold-dim));
+  }
+
+  /* Informações Inferiores */
+  .card-info {
+    height: 80px;
+    background: #0f0f12;
+    border-top: 1px solid var(--gold-dim);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    transition: background 0.3s;
+  }
+
+  .char-card.active .card-info {
+    background: linear-gradient(to top, #1a1200, #0f0f12);
+    border-top-color: var(--gold-bright);
+  }
+
+  .char-name {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--text-main);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .char-card.active .char-name {
+    color: var(--gold-bright);
+    text-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
+  }
+
+  .char-desc {
+    font-size: 0.85rem;
+    color: #888;
+  }
+
+  /* Texto "ABRIR" que aparece */
+  .access-hint {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--gold-bright);
+    font-size: 1.2rem;
+    font-weight: bold;
+    letter-spacing: 3px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    text-shadow: 0 2px 10px black;
+    background: rgba(0,0,0,0.7);
+    padding: 10px 20px;
+    border-radius: 4px;
+    border: 1px solid var(--gold-dim);
+    width: 80%;
+    text-align: center;
+  }
+
+  .char-card.active .access-hint {
+    opacity: 1;
+  }
+  
+  .char-card.active .class-icon {
+    opacity: 0.2; /* Esmaece o ícone para ler o texto */
+  }
+
+  /* Estado Vazio */
+  .empty-state {
+    border: 1px dashed var(--gold-dim);
+    border-radius: 8px;
+    padding: 3rem;
+    color: #666;
+    background: rgba(0,0,0,0.3);
+  }
+
+  /* Botão "Criar Novo" Flutuante */
+  .btn-new-float {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: var(--gold-primary);
+    color: black;
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: bold;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+    transition: all 0.3s;
+    text-decoration: none;
+    z-index: 100;
+  }
+  .btn-new-float:hover {
+    transform: scale(1.1);
+    background: var(--gold-bright);
+    color: black;
+  }
+
+</style>
+</head>
+<body>
+
+  {% include "components/navbar.html" %}
+
+  <div class="container py-5 mt-5">
+    
+    <div class="text-center mb-5 border-b border-[#333] pb-4">
+      <h1 class="text-4xl font-bold text-[#d4af37] mb-2 tracking-widest drop-shadow-md">
+        [ SALÃO DOS REGISTROS ]
+      </h1>
+      <p class="text-[#888] text-lg font-serif italic">
+        Selecione um pergaminho para retomar sua jornada.
+      </p>
+    </div>
+
+    {% if fichas %}
+      <div class="gallery-grid">
+        {% for ficha in fichas %}
+        <div class="char-card" onclick="handleCardClick(this, '{{ ficha.id }}')">
+          <div class="card-corner"></div>
+          
+          <div class="card-visual">
+            <svg class="class-icon" viewBox="0 0 24 24" fill="currentColor">
+               <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+            </svg>
+            <div class="access-hint">ABRIR</div>
+          </div>
+
+          <div class="card-info">
+            <span class="char-name">{{ ficha.nome_personagem }}</span>
+            <span class="char-desc">{{ ficha.classe }} <span class="text-[#555] mx-1">•</span> Nível {{ ficha.nivel }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state text-center mt-10">
+        <p class="text-2xl font-serif mb-4">O salão está vazio e silencioso.</p>
+        <p class="text-[#888]">Nenhum herói foi forjado ainda.</p>
+        <a href="{% url 'home' %}" class="inline-block mt-6 px-6 py-2 border border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black transition-colors uppercase tracking-widest text-sm font-bold">
+          Forjar Primeiro Herói
+        </a>
+      </div>
+    {% endif %}
+  </div>
+
+  <a href="{% url 'home' %}" class="btn-new-float" title="Criar Nova Ficha">+</a>
+
+<script>
+  function handleCardClick(element, fichaId) {
+    if (element.classList.contains('active')) {
+      window.location.href = "{% url 'criando' %}?load_id=" + fichaId;
+    } else {
+
+      document.querySelectorAll('.char-card').forEach(card => {
+        card.classList.remove('active');
+      });
+
+      element.classList.add('active');
+    }
+  }
+
+  document.addEventListener('click', function(event) {
+    if (!event.target.closest('.char-card')) {
+      document.querySelectorAll('.char-card').forEach(card => {
+        card.classList.remove('active');
+      });
+    }
+  });
+</script>
+
+</body>
+</html>

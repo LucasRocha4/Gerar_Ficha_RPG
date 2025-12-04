@@ -1,4 +1,13 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
 <style>
+  :root {
+    --font-title: 'Cinzel', serif;
+    --font-body: 'Crimson Text', serif;
+  }
+
   .navbar {
     background-color: #00087a !important;
     padding: 0.75rem 1.5rem;
@@ -7,6 +16,14 @@
     justify-content: space-between;
     align-items: center;
     font-weight: bold;
+    
+    /* APLICAÇÃO DA FONTE: Cinzel para a barra principal */
+    font-family: var(--font-title);
+    letter-spacing: 0.5px; /* Cinzel fica melhor com um leve espaçamento */
+  }
+
+  .navbar-brand {
+    font-size: 1.5rem; /* Aumentei um pouco para destacar a fonte */
   }
 
   .dropdown:hover .dropdown-menu {
@@ -34,23 +51,22 @@
     content: "";
     display: block;
     position: absolute;
-    
     top: -30px; 
     left: 0;
     width: 100%;
-    
     height: 30px; 
-    
     background: transparent; 
   }
 
   .custom-dropdown-menu .dropdown-item {
     color: #ebe4e4;
-    font-size: 0.9rem;
+    font-size: 1.1rem; /* Aumentei levemente para a Crimson Text */
     padding: 0.5rem 1rem;
     transition: background-color 0.2s;
     position: relative; 
     z-index: 2;
+    font-family: var(--font-body); 
+    font-weight: 600;
   }
 
   .custom-dropdown-menu .dropdown-item:hover {
@@ -73,7 +89,7 @@
       <div class="dropdown ms-auto position-relative">
         
         <a href="#" class="text-white text-decoration-none d-flex align-items-center gap-2 py-2" id="profileDropdown">
-          <span class="d-none d-md-inline">{{ user.username }}</span>
+          <span class="d-none d-md-inline" style="font-family: var(--font-title);">{{ user.username }}</span>
           <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
             <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
             <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
@@ -81,8 +97,9 @@
         </a>
 
         <ul class="dropdown-menu custom-dropdown-menu" aria-labelledby="profileDropdown">
-          <li><a class="dropdown-item" href="#">Perfil</a></li>
-          <li><a class="dropdown-item" href="#">Fichas</a></li>
+          <li><a class="dropdown-item" href="{% url 'charsheet' %}">Fichas</a></li>
+          <li><a class="dropdown-item" href="{% url 'mesas' %}">Mesas</a></li>
+
           <li><hr class="dropdown-divider"></li>
           <li>
               <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" style="color: #ff6b6b !important;">
@@ -96,11 +113,11 @@
         </ul>
       </div>
     {% else %}
-      <a href="{% url 'login' %}" class="btn btn-outline-light ms-auto">
+      <a href="{% url 'login' %}" class="btn btn-outline-light ms-auto" style="font-family: var(--font-title);">
         Login
       </a>
     {% endif %}
   </div>
 </nav>
 
-<div style="height:56px; width:100%;"></div>
+<div style="height:70px; width:100%;"></div>

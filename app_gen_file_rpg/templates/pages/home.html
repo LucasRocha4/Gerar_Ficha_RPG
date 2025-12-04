@@ -1,248 +1,327 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>FichaD&D</title>
+  <title>Novo Contrato - FichaDnD</title>
+  
+  <!-- Bibliotecas -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    .fade { opacity: 0; transition: opacity 0.15s linear; }
-    .fade.show { opacity: 1; }
-    .btn-primary.dropdown-toggle,
-    .btn-secondary.dropdown-toggle {
-      background-color: #00087a;
-      border-color: #00087a;
-    }
-    .btn-primary.dropdown-toggle:hover,
-    .btn-secondary.dropdown-toggle:hover {
-      background-color: #00087a;
-      border-color: #00087a;
-    }
-    body { background-color: #141415; color: #ebe4e4; }
-  </style>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  
+  <!-- Fontes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Mate+SC&family=Crimson+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+      --gold-primary: #d4af37;
+      --gold-dim: #8a7326;
+      --bg-dark: #0a0a0c;
+      --panel-bg: rgba(20, 20, 25, 0.95);
+      --crimson: #8a0303;
+      --crimson-light: #b91212;
+      --text-main: #e0d8c3;
+  }
+
+  body { 
+    background-color: var(--bg-dark);
+    background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #000000 100%);
+    color: var(--text-main); 
+    font-family: 'Crimson Pro', serif;
+    min-height: 100vh;
+  }
+
+  /* Fontes Temáticas */
+  h1, h2, label, button, .form-label { font-family: 'Cinzel', serif; }
+  .subtitle { font-family: 'Mate SC', serif; }
+
+  /* Container Principal - O Grimório */
+  .arcane-border {
+    background-color: var(--panel-bg);
+    border: 2px solid var(--gold-dim);
+    box-shadow: 
+        0 0 15px rgba(0,0,0,0.8),
+        inset 0 0 50px rgba(0,0,0,0.8),
+        0 0 10px rgba(212, 175, 55, 0.2);
+    border-radius: 4px;
+    position: relative;
+    clip-path: polygon(
+      0 0, 100% 0, 100% 100%, 0 100%, 
+      0 15px, 15px 0 
+    );
+  }
+
+  /* Detalhes Dourados */
+  .corner-decoration {
+    position: absolute;
+    width: 20px; height: 20px;
+    border: 2px solid var(--gold-primary);
+    transition: all 0.5s ease;
+    pointer-events: none;
+  }
+  .top-right { top: 10px; right: 10px; border-left: none; border-bottom: none; }
+  .bottom-left { bottom: 10px; left: 10px; border-right: none; border-top: none; }
+
+  /* Inputs Mágicos & Bootstrap Overrides */
+  .form-control, .form-select {
+    font-family: 'Crimson Pro', serif;
+    background-color: #050505 !important;
+    border: 1px solid #333 !important;
+    border-bottom: 2px solid var(--gold-dim) !important;
+    color: var(--gold-primary) !important;
+    border-radius: 0 !important;
+    font-size: 1.1rem;
+  }
+  
+  .form-control:focus, .form-control[readonly]:focus {
+    background-color: #0f0f12 !important;
+    border-color: #333 !important;
+    border-bottom-color: var(--gold-primary) !important;
+    box-shadow: 0 5px 15px -10px rgba(212, 175, 55, 0.5) !important;
+    color: var(--gold-primary) !important;
+  }
+
+  .form-control[readonly] {
+    background-color: #0a0a0c !important;
+    cursor: pointer;
+  }
+
+  .form-label {
+    color: var(--gold-dim);
+    letter-spacing: 1px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 0.2rem;
+  }
+
+  /* Dropdown Menu Dark */
+  .dropdown-menu {
+    background-color: #1a1a1a;
+    border: 1px solid var(--gold-dim);
+  }
+  .dropdown-item {
+    color: var(--text-main);
+    font-family: 'Crimson Pro', serif;
+  }
+  .dropdown-item:hover {
+    background-color: var(--gold-dim);
+    color: #000;
+  }
+
+  /* Botões Dropdown */
+  .btn-primary.dropdown-toggle, .btn-secondary.dropdown-toggle {
+    background-color: var(--gold-dim);
+    border-color: var(--gold-dim);
+    border-radius: 0;
+    color: #000;
+  }
+  .btn-primary.dropdown-toggle:hover, .btn-secondary.dropdown-toggle:hover {
+    background-color: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: #000;
+  }
+
+  /* Botão Principal (Salvar) */
+  .btn-arcane {
+    background: linear-gradient(180deg, var(--crimson) 0%, #520000 100%);
+    border: 1px solid #ff4444;
+    color: #ffd700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: bold;
+    padding: 12px;
+    position: relative;
+    transition: all 0.3s ease;
+    width: 100%;
+    opacity: 0; 
+    pointer-events: none;
+    transform: translateY(10px);
+  }
+  
+  .btn-arcane.show {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateY(0);
+  }
+
+  .btn-arcane:hover {
+    background: linear-gradient(180deg, var(--crimson-light) 0%, #7a0000 100%);
+    box-shadow: 0 0 15px var(--crimson);
+    color: #fff;
+  }
+
+  /* Botão Mágico (Auto Fill) */
+  .btn-magic {
+    background: transparent;
+    border: 1px solid var(--gold-dim);
+    color: var(--gold-dim);
+    font-size: 0.8rem;
+    padding: 8px 16px;
+    transition: all 0.3s;
+  }
+  .btn-magic:hover {
+    border-color: var(--gold-primary);
+    color: var(--gold-primary);
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+  }
+
+  /* Animações */
+  .fade-in { animation: fadeIn 0.8s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  
+  .input-group > .form-control { flex: 1; width: auto; }
+</style>
 </head>
 <body>
   {% include "components/navbar.html" %}
   
-  <div class="container mt-5">
-    <form id="charForm" method="post" action="{% url 'criando' %}">
-      {% csrf_token %}
+  <div class="min-h-screen flex items-center justify-center p-4 fade-in" style="margin-top: 1px;">
+    <div class="max-w-2xl w-full p-8 arcane-border relative z-10">
+      
+      <div class="corner-decoration top-right"></div>
+      <div class="corner-decoration bottom-left"></div>
 
-      <div class="row justify-content-center mb-3">
-        <div class="col-md-6 col-lg-4">
-          <label for="nome" class="form-label">Nome</label>
-          <input type="text" id="nome" name="charname" class="form-control" placeholder="Digite o nome do personagem" maxlength="50">
-        </div>
+      <div class="text-center mb-8 border-b border-[#333] pb-4">
+        <h1 class="text-3xl font-bold text-[#d4af37] mb-2 tracking-widest drop-shadow-md">
+          [ NOVO CONTRATO ]
+        </h1>
+        <p class="subtitle text-[#888] text-lg">
+          Defina os termos da sua existência.
+        </p>
       </div>
 
-      <div class="row justify-content-center mb-3">
-        <div class="col-md-6 col-lg-4">
-          <label for="nivel" class="form-label">Nível</label>
-          <input type="number" id="nivel" name="classlevel" class="form-control" placeholder="Digite o nível (1-20)" min="1" max="20">
-        </div>
-      </div>
+      <form id="charForm" method="post" action="{% url 'criando' %}" class="space-y-5">
+        {% csrf_token %}
 
-      <div class="row justify-content-center mb-3">
-        <div class="col-md-6 col-lg-4 dropdown">
-          <label class="form-label">Raça</label>
-          <div class="input-group">
-            <input type="text" id="selectedRace" class="form-control" readonly placeholder="Selecione a raça">
-            <input type="hidden" id="inputRace" name="race">
-            <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"></button>
-            <ul id="race-menu" class="dropdown-menu"></ul>
+        <div class="row g-4">
+          <div class="col-md-8">
+            <label for="nome" class="form-label">Nome do Personagem</label>
+            <input type="text" id="nome" name="charname" class="form-control" placeholder="Ex: Valeros" maxlength="50">
+          </div>
+          
+          <div class="col-md-4">
+            <label for="nivel" class="form-label">Nível (1-20)</label>
+            <input type="number" id="nivel" name="classlevel" class="form-control" placeholder="1" min="1" max="20">
           </div>
         </div>
-      </div>
 
-      <div id="subrace-container" class="row justify-content-center mb-3" style="display:none;">
-        <div class="col-md-6 col-lg-4 dropdown">
-          <label class="form-label">Sub‑raça</label>
-          <div class="input-group">
-            <input type="text" id="selectedSubrace" class="form-control" readonly placeholder="Selecione a sub‑raça">
-            <input type="hidden" id="inputSubrace" name="subrace">
-            <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"></button>
-            <ul id="subrace-menu" class="dropdown-menu"></ul>
+        <div>
+            <label for="playername" class="form-label">Nome do Jogador</label>
+            <input type="text" id="playername" name="playername" class="form-control" placeholder="Seu nome real" maxlength="50" value="{{ user.username }}">
+        </div>
+
+        <div class="row g-4">
+          <div class="col-md-6">
+            <label class="form-label">Raça</label>
+            <div class="input-group">
+              <input type="text" id="selectedRace" class="form-control" readonly placeholder="Selecionar...">
+              <input type="hidden" id="inputRace" name="race">
+              <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button>
+              <ul id="race-menu" class="dropdown-menu dropdown-menu-end"></ul>
+            </div>
+          </div>
+
+          <div class="col-md-6" id="subrace-container" style="display:none; opacity: 0; transition: opacity 0.5s;">
+            <label class="form-label">Sub-raça</label>
+            <div class="input-group">
+              <input type="text" id="selectedSubrace" class="form-control" readonly placeholder="Selecionar...">
+              <input type="hidden" id="inputSubrace" name="subrace">
+              <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button>
+              <ul id="subrace-menu" class="dropdown-menu dropdown-menu-end"></ul>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="row justify-content-center mb-3">
-        <div class="col-md-6 col-lg-4 dropdown">
-          <label class="form-label">Classe</label>
-          <div class="input-group">
-            <input type="text" id="selectedClass" class="form-control" readonly placeholder="Selecione a classe">
-            <input type="hidden" id="inputClass" name="classe">
-            <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"></button>
-            <ul id="class-menu" class="dropdown-menu"></ul>
+        <div class="row g-4">
+          <div class="col-md-6">
+            <label class="form-label">Classe</label>
+            <div class="input-group">
+              <input type="text" id="selectedClass" class="form-control" readonly placeholder="Selecionar...">
+              <input type="hidden" id="inputClass" name="classe">
+              <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button>
+              <ul id="class-menu" class="dropdown-menu dropdown-menu-end"></ul>
+            </div>
+          </div>
+
+          <div class="col-md-6" id="subclass-container" style="display:none; opacity: 0; transition: opacity 0.5s;">
+            <label class="form-label">Arquétipo</label>
+            <div class="input-group">
+              <input type="text" id="selectedSubclass" class="form-control" readonly placeholder="Selecionar...">
+              <input type="hidden" id="inputSubclass" name="subclasse">
+              <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button>
+              <ul id="subclass-menu" class="dropdown-menu dropdown-menu-end"></ul>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div id="subclass-container" class="row justify-content-center mb-3" style="display:none;">
-        <div class="col-md-6 col-lg-4 dropdown">
-          <label class="form-label">Sub‑classe</label>
-          <div class="input-group">
-            <input type="text" id="selectedSubclass" class="form-control" readonly placeholder="Selecione a sub‑classe">
-            <input type="hidden" id="inputSubclass" name="subclasse">
-            <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"></button>
-            <ul id="subclass-menu" class="dropdown-menu"></ul>
-          </div>
-        </div>
-      </div>
-
-      <div class="row justify-content-center mb-3">
-        <div class="col-md-6 col-lg-4 dropdown">
+        <div>
           <label class="form-label">Antecedente</label>
           <div class="input-group">
-            <input type="text" id="selectedBackground" class="form-control" readonly placeholder="Selecione o antecedente">
+            <input type="text" id="selectedBackground" class="form-control" readonly placeholder="Selecionar história de origem...">
             <input type="hidden" id="inputBackground" name="antecedente">
-            <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"></button>
-            <ul id="background-menu" class="dropdown-menu"></ul>
+            <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button>
+            <ul id="background-menu" class="dropdown-menu dropdown-menu-end w-100"></ul>
           </div>
         </div>
-      </div>
 
-      <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-4 text-center">
-          <button id="btnSubmit" type="submit" class="btn btn-success fade">Enviar</button>
+        <div class="d-flex flex-column align-items-center gap-3 mt-5">
+          <button id="btnSubmit" type="submit" class="btn-arcane rounded-sm">
+            Forjar Destino
+          </button>
+          
+          <button id="btnFill" type="button" class="btn-magic rounded-sm uppercase tracking-widest text-xs">
+            🎲 Invocar Aleatoriamente
+          </button>
         </div>
-      </div>
 
-      <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-4 text-center">
-          <button id="btnFill" type="button" class="btn btn-secondary me-2">Preencher Auto</button>
-        </div>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     const backgrounds = {
-      acolyte:         "Acólito",
-      charlatan:       "Charlatão",
-      criminal:        "Criminoso",
-      entertainer:     "Artista",
-      "folk-hero":     "Herói do Povo",
-      "guild-artisan": "Artesão de Guilda",
-      hermit:          "Ermitão",
-      noble:           "Nobre",
-      outlander:       "Forasteiro",
-      sage:            "Sábio",
-      sailor:          "Marinheiro",
-      soldier:         "Soldado",
-      urchin:          "Órfão"
+      acolyte: "Acólito", charlatan: "Charlatão", criminal: "Criminoso", entertainer: "Artista",
+      "folk-hero": "Herói do Povo", "guild-artisan": "Artesão de Guilda", hermit: "Ermitão",
+      noble: "Nobre", outlander: "Forasteiro", sage: "Sábio", sailor: "Marinheiro",
+      soldier: "Soldado", urchin: "Órfão"
     };
 
     const racas = {
-      dragonborn: "Draconato",
-      dwarf:      "Anão",
-      elf:        "Elfo",
-      gnome:      "Gnomo",
-      "half-elf": "Meio-Elfo",
-      "half-orc": "Meio-Orc",
-      halfling:   "Halfling",
-      human:      "Humano",
-      tiefling:   "Tiefling"
+      dragonborn: "Draconato", dwarf: "Anão", elf: "Elfo", gnome: "Gnomo",
+      "half-elf": "Meio-Elfo", "half-orc": "Meio-Orc", halfling: "Halfling",
+      human: "Humano", tiefling: "Tiefling"
     };
 
     const subracasByRace = {
-      dwarf: {
-        "hill-dwarf":     "Colina",
-        "mountain-dwarf": "Montanha"
-      },
-      elf: {
-        "high-elf": "Alto Elfo",
-        "wood-elf": "Floresta",
-        drow:       "Elfo Negro"
-      },
-      gnome: {
-        "forest-gnome": "Floresta",
-        "rock-gnome":   "Rocha"
-      },
-      halfling: {
-        lightfoot: "Pé-Leve",
-        stout:     "Robusto"
-      }
+      dwarf: { "hill-dwarf": "Colina", "mountain-dwarf": "Montanha" },
+      elf: { "high-elf": "Alto Elfo", "wood-elf": "Floresta", drow: "Elfo Negro" },
+      gnome: { "forest-gnome": "Floresta", "rock-gnome": "Rocha" },
+      halfling: { lightfoot: "Pé-Leve", stout: "Robusto" }
     };
 
     const classes = {
-      barbarian: "Bárbaro",
-      bard:      "Bardo",
-      cleric:    "Clérigo",
-      druid:     "Druida",
-      fighter:   "Guerreiro",
-      monk:      "Monge",
-      paladin:   "Paladino",
-      ranger:    "Patrulheiro",
-      rogue:     "Ladino",
-      sorcerer:  "Feiticeiro",
-      warlock:   "Bruxo",
-      wizard:    "Mago"
+      barbarian: "Bárbaro", bard: "Bardo", cleric: "Clérigo", druid: "Druida",
+      fighter: "Guerreiro", monk: "Monge", paladin: "Paladino", ranger: "Patrulheiro",
+      rogue: "Ladino", sorcerer: "Feiticeiro", warlock: "Bruxo", wizard: "Mago"
     };
 
     const subclassesByClass = {
-      barbarian: {
-        berserker:       "Berserker",
-        "totem-warrior": "Totem Guerreiro"
-      },
-      bard: {
-        lore:  "Saber",
-        valor: "Valor"
-      },
-      cleric: {
-        life:     "Vida",
-        light:    "Luz",
-        trickery: "Trapaça"
-      },
-      druid: {
-        land: "Terra",
-        moon: "Lua"
-      },
-      fighter: {
-        champion:         "Campeão",
-        battlemaster:     "Mestre Batalha",
-        "eldritch-knight":"Cavaleiro Arcano"
-      },
-      monk: {
-        "open-hand":     "Mão Aberta",
-        shadow:          "Sombras",
-        "four-elements": "Quatro Elementos"
-      },
-      paladin: {
-        devotion:  "Devoção",
-        ancients:  "Ancestrais",
-        vengeance: "Vingança"
-      },
-      ranger: {
-        hunter:        "Caçador",
-        "beast-master":"Mestre Feras"
-      },
-      rogue: {
-        thief:    "Ladrão",
-        assassin: "Assassino",
-        arcane:   "Trapaceiro Arcano"
-      },
-      sorcerer: {
-        draconic:    "Dracônica",
-        "wild-magic":"Magia Selvagem"
-      },
-      warlock: {
-        fiend:          "Flagelo",
-        fey:            "Fada",
-        "great-old-one":"Grande Antigo"
-      },
-      wizard: {
-        abjuration:    "Abjuração",
-        conjuration:   "Conjuração",
-        divination:    "Adivinhação",
-        enchantment:   "Encantamento",
-        evocation:     "Evocação",
-        illusion:      "Ilusão",
-        necromancy:    "Necromancia",
-        transmutation: "Transmutação"
-      }
+      barbarian: { berserker: "Berserker", "totem-warrior": "Totem Guerreiro" },
+      bard: { lore: "Saber", valor: "Valor" },
+      cleric: { life: "Vida", light: "Luz", trickery: "Trapaça" },
+      druid: { land: "Terra", moon: "Lua" },
+      fighter: { champion: "Campeão", battlemaster: "Mestre Batalha", "eldritch-knight":"Cavaleiro Arcano" },
+      monk: { "open-hand": "Mão Aberta", shadow: "Sombras", "four-elements": "Quatro Elementos" },
+      paladin: { devotion: "Devoção", ancients: "Ancestrais", vengeance: "Vingança" },
+      ranger: { hunter: "Caçador", "beast-master":"Mestre Feras" },
+      rogue: { thief: "Ladrão", assassin: "Assassino", arcane: "Trapaceiro Arcano" },
+      sorcerer: { draconic: "Dracônica", "wild-magic":"Magia Selvagem" },
+      warlock: { fiend: "Flagelo", fey: "Fada", "great-old-one":"Grande Antigo" },
+      wizard: { abjuration: "Abjuração", conjuration: "Conjuração", divination: "Adivinhação", enchantment: "Encantamento", evocation: "Evocação", illusion: "Ilusão", necromancy: "Necromancia", transmutation: "Transmutação" }
     };
 
     function montarDropdown(id, map, fn) {
@@ -260,7 +339,6 @@
       });
     }
 
-
     function checkSelections() {
       const lvl = document.getElementById('nivel').value;
       const r   = document.getElementById('inputRace').value;
@@ -268,36 +346,44 @@
       const c   = document.getElementById('inputClass').value;
       const sc  = document.getElementById('inputSubclass').value;
       const bg  = document.getElementById('inputBackground').value;
+      const name = document.getElementById('nome').value; 
       const needSR = !!subracasByRace[r];
       const needSC = !!subclassesByClass[c];
-      const ok = lvl && r && c && bg && (!needSR || sr) && (!needSC || sc);
-      document.getElementById('btnSubmit').classList.toggle('show', ok);
+      const ok = name && lvl && r && c && bg && (!needSR || sr) && (!needSC || sc);
+      
+      const btn = document.getElementById('btnSubmit');
+      if (ok) {
+        btn.classList.add('show');
+      } else {
+        btn.classList.remove('show');
+      }
     }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      montarDropdown('race-menu', racas, 'selecionarRaca');
-      montarDropdown('class-menu', classes, 'selecionarClasse');
-      montarDropdown('background-menu', backgrounds, 'selecionarBackground');
-      document.getElementById('nivel').addEventListener('change', checkSelections);
-      document.querySelector('form').addEventListener('keydown', e => {
-        if (e.key === 'Enter') e.preventDefault();
-      });
-    });
 
     function selecionarRaca(r) {
       document.getElementById('selectedRace').value = racas[r];
       document.getElementById('inputRace').value    = r;
-      const sub = document.getElementById('subrace-container');
+      
+      const subContainer = document.getElementById('subrace-container');
+      const inputSub = document.getElementById('inputSubrace');
+      const selectedSub = document.getElementById('selectedSubrace');
+      
+      inputSub.value = '';
+      selectedSub.value = '';
+
       if (subracasByRace[r]) {
         montarDropdown('subrace-menu', subracasByRace[r], 'selecionarSubraca');
-        sub.style.display = 'block';
-      } else sub.style.display = 'none';
+        subContainer.style.display = 'block';
+        setTimeout(() => subContainer.style.opacity = 1, 10);
+      } else {
+        subContainer.style.opacity = 0;
+        setTimeout(() => subContainer.style.display = 'none', 500);
+      }
       checkSelections();
     }
 
     function selecionarSubraca(sr) {
       const r = document.getElementById('inputRace').value;
-      document.getElementById('selectedSubrace').value = `${racas[r]} (${subracasByRace[r][sr]})`;
+      document.getElementById('selectedSubrace').value = subracasByRace[r][sr];
       document.getElementById('inputSubrace').value    = sr;
       checkSelections();
     }
@@ -305,11 +391,22 @@
     function selecionarClasse(c) {
       document.getElementById('selectedClass').value = classes[c];
       document.getElementById('inputClass').value    = c;
-      const sc = document.getElementById('subclass-container');
+      
+      const subContainer = document.getElementById('subclass-container');
+      const inputSub = document.getElementById('inputSubclass');
+      const selectedSub = document.getElementById('selectedSubclass');
+
+      inputSub.value = '';
+      selectedSub.value = '';
+
       if (subclassesByClass[c]) {
         montarDropdown('subclass-menu', subclassesByClass[c], 'selecionarSubclasse');
-        sc.style.display = 'block';
-      } else sc.style.display = 'none';
+        subContainer.style.display = 'block';
+        setTimeout(() => subContainer.style.opacity = 1, 10);
+      } else {
+        subContainer.style.opacity = 0;
+        setTimeout(() => subContainer.style.display = 'none', 500);
+      }
       checkSelections();
     }
 
@@ -326,31 +423,49 @@
       checkSelections();
     }
 
+    function getRandomKey(obj) {
+      const keys = Object.keys(obj);
+      return keys[Math.floor(Math.random() * keys.length)];
+    }
+
+    const randomNames = ["Aragorn", "Gandalf", "Legolas", "Gimli", "Frodo", "Conan", "Xena", "Merlin", "Arthur", "Zelda"];
+
     document.addEventListener('DOMContentLoaded', () => {
+      montarDropdown('race-menu', racas, 'selecionarRaca');
+      montarDropdown('class-menu', classes, 'selecionarClasse');
+      montarDropdown('background-menu', backgrounds, 'selecionarBackground');
+      
+      document.getElementById('nivel').addEventListener('input', checkSelections);
+      document.getElementById('nome').addEventListener('input', checkSelections);
+      
+      document.querySelector('form').addEventListener('keydown', e => {
+        if (e.key === 'Enter') e.preventDefault();
+      });
+
       const fillBtn = document.getElementById('btnFill');
       fillBtn.addEventListener('click', () => {
-        document.getElementById('nome').value = 'Conan';
-        document.getElementById('nivel').value = 5;
-  
-        const firstRace = document.querySelector('#race-menu li:first-child button');
-        if (firstRace) firstRace.click();
-  
-        const firstSubrace = document.querySelector('#subrace-menu li:first-child button');
-        if (firstSubrace) firstSubrace.click();
-  
-        const firstClass = document.querySelector('#class-menu li:first-child button');
-        if (firstClass) firstClass.click();
-  
-        const firstSubclass = document.querySelector('#subclass-menu li:first-child button');
-        if (firstSubclass) firstSubclass.click();
-  
-        const firstBg = document.querySelector('#background-menu li:first-child button');
-        if (firstBg) firstBg.click();
-  
-        const subraceContainer = document.getElementById('subrace-container');
-        if (subraceContainer) subraceContainer.style.display = 'flex';
-        const subclassContainer = document.getElementById('subclass-container');
-        if (subclassContainer) subclassContainer.style.display = 'flex';
+        document.getElementById('nome').value = randomNames[Math.floor(Math.random() * randomNames.length)];
+        document.getElementById('nivel').value = Math.floor(Math.random() * 5) + 1;
+
+        const rKey = getRandomKey(racas);
+        selecionarRaca(rKey);
+
+        if (subracasByRace[rKey]) {
+          const srKey = getRandomKey(subracasByRace[rKey]);
+          selecionarSubraca(srKey);
+        }
+
+        const cKey = getRandomKey(classes);
+        selecionarClasse(cKey);
+
+        if (subclassesByClass[cKey]) {
+          const scKey = getRandomKey(subclassesByClass[cKey]);
+          selecionarSubclasse(scKey);
+        }
+
+        const bgKey = getRandomKey(backgrounds);
+        selecionarBackground(bgKey);
+        checkSelections();
       });
     });
   </script>

@@ -1,76 +1,104 @@
-from    django.shortcuts                     import render, redirect
-from    django.urls                          import reverse_lazy
-from    django.views.generic                 import CreateView
-from    .forms                               import RegistrarUsuario
-from    app_gen_file_rpg.fill_file           import FillFile
-from    django.contrib.auth.models           import User
-from    django.contrib.auth                  import authenticate, login      
-from    django.http                          import JsonResponse
-from    rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from    rest_framework_simplejwt.views       import TokenObtainPairView
-from    rest_framework                       import serializers
-from    django.conf                          import settings
-from    django.core.mail                     import send_mail
-from    django.contrib.auth.tokens           import default_token_generator
-from    django.utils.http                    import urlsafe_base64_encode, urlsafe_base64_decode
-from    django.utils.encoding                import force_bytes, force_str
-from    django.utils.http                    import urlsafe_base64_encode
-from    django.utils.encoding                import force_bytes
-from    app_gen_file_rpg.fill_file           import FillFile
-from    app_gen_file_rpg.utils.complements   import get_labels, translate_saves_list
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse_lazy
+from django.views.generic import CreateView, TemplateView
+from .forms import RegistrarUsuario
+from app_gen_file_rpg.fill_file import FillFile
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login      
+from django.http import JsonResponse
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework import serializers
+from django.conf import settings
+from django.core.mail import send_mail
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from app_gen_file_rpg.utils.complements import get_labels, translate_saves_list
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from .models import FichaPersonagem, Mesa, ParticipacaoMesa
 
-import os
-import  json
+import json
+import ast
 
-class RegistrarUsuario(CreateView):
-    form_class = RegistrarUsuario
-    template_name = 'registration/registrar.html'
-    success_url = reverse_lazy('login')
+def sanitize_data(data):
+    if isinstance(data, str):
+        return data.strip()
+    elif isinstance(data, dict):
+        return {k: sanitize_data(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [sanitize_data(v) for v in data]
+    else:
+        return data
 
 
-
-def user_registration(request):
+@login_required 
+def charsheet(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
+        try:
+            raw_body = request.body.decode('utf-8')
+            if not raw_body:
+                return JsonResponse({'error': 'Nenhum dado recebido.'}, status=400)
 
-        username = data.get('username')
-        email = data.get('email')
-        password = data.get('password')
-        is_registering = data.get('is_registering', False)
+            data = json.loads(raw_body)
 
-        if is_registering:
-            if User.objects.filter(username=username).exists():
-                return JsonResponse({'result': False, 'msg': 'Usuário já existe'})
+            if isinstance(data, str):
+                try:
+                    data = json.loads(data)
+                except json.JSONDecodeError:
+                    try:
+                        data = ast.literal_eval(data)
+                    except:
+                        return JsonResponse({'error': 'Formato de dados inválido.'}, status=400)
 
-            user = User.objects.create_user(username=username, password=password, email=email)
+            if not isinstance(data, dict):
+                 return JsonResponse({'error': 'Dados inválidos (Esperado um objeto JSON).'}, status=400)
+
+            clean_data = sanitize_data(data)
             
-            login(request, user)
+            nome = clean_data.get('charname', 'Sem Nome')
+            classe_full = str(clean_data.get('classe', 'Desconhecido'))
             
-            return JsonResponse({'result': True, 'msg': 'Usuário registrado e logado!'})
+            try:
+                nivel = int(clean_data.get('classlevel', 1))
+            except (ValueError, TypeError):
+                nivel = 1
 
-        else:
+            ficha, created = FichaPersonagem.objects.update_or_create(
+                usuario=request.user,
+                nome_personagem=nome,
+                defaults={
+                    'classe': classe_full,
+                    'nivel': nivel,
+                    'dados_ficha': clean_data
+                }
+            )
 
-            user = authenticate(request, username=username, password=password)
+            msg = "Ficha criada com sucesso!" if created else "Ficha atualizada com sucesso!"
+            return JsonResponse({'message': msg, 'id': ficha.id}, status=200)
 
-            if user is not None:
-                login(request, user) 
-                return JsonResponse({'result': True, 'msg': 'Login realizado com sucesso'})
-            else:
-                return JsonResponse({'result': False, 'msg': 'Credenciais inválidas'})
+        except Exception as e:
+            print(f"ERRO NO SERVIDOR: {e}")
+            return JsonResponse({'error': f"Erro interno: {str(e)}"}, status=500)
+    
+    else:
+        fichas = FichaPersonagem.objects.filter(usuario=request.user).order_by('-data_atualizacao')
+        return render(request, 'pages/charsheet.html', {'fichas': fichas})
 
-    return JsonResponse({'error': 'Método não permitido'})
-
-
-def home(request):
-    context = {
-        'user': request.user
-    }
-    return render(request, 'pages/home.html', context)
-
-# import FillFile ...
 
 def criando(request):
     target_lang = request.GET.get('lang', request.POST.get('lang', 'pt'))
+    
+    load_id = request.GET.get('load_id')
+    if load_id and request.user.is_authenticated:
+        try:
+            ficha = FichaPersonagem.objects.get(id=load_id, usuario=request.user)
+            request.session['ficha_data'] = ficha.dados_ficha
+            return redirect('criando')
+        except FichaPersonagem.DoesNotExist:
+            pass 
+
     context = {}
 
     if request.method == 'POST':
@@ -80,8 +108,8 @@ def criando(request):
             request.session['ficha_data'] = data_context
             context = data_context.copy()
         except Exception as e:
-            print(f"Erro: {e}")
-            return render(request, 'pages/erro.html', {'erro': 'Erro'})
+            print(f"Erro na geração: {e}")
+            return render(request, 'pages/erro.html', {'erro': 'Erro na geração'})
 
     elif request.method == 'GET':
         data_context = request.session.get('ficha_data')
@@ -89,133 +117,130 @@ def criando(request):
             return redirect('home')
         context = data_context.copy()
 
-    # --- APLICAÇÃO DAS TRADUÇÕES ---
-    
-    # 1. Carrega os labels (Textos fixos e Perícias)
+    context['full_data_json'] = request.session.get('ficha_data', context)
+
     context['labels'] = get_labels(target_lang)
     
-    # 2. Traduz a lista de Saves (STR -> FOR) dinamicamente
-    # O FillFile gera 'saves', nós criamos uma versão traduzida para exibição
     if 'saves' in context:
         context['saves'] = translate_saves_list(context['saves'], target_lang)
 
     context['current_lang'] = target_lang
     request.session['ultima_ficha'] = context
-
+    
     return render(request, 'pages/criando.html', context)
 
-def password_reset_view(request):
-    return render(request, 'registration/password_reset.html')
 
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+
+class RegistrarUsuario(CreateView):
+    form_class = RegistrarUsuario
+    template_name = 'registration/registrar.html'
+    success_url = reverse_lazy('login')
+
+def user_registration(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+        is_registering = data.get('is_registering', False)
+
+        if is_registering:
+            if User.objects.filter(username=username).exists():
+                return JsonResponse({'result': False, 'msg': 'Usuário já existe'})
+            user = User.objects.create_user(username=username, password=password, email=email)
+            login(request, user)
+            return JsonResponse({'result': True, 'msg': 'Usuário registrado e logado!'})
+        else:
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user) 
+                return JsonResponse({'result': True, 'msg': 'Login realizado'})
+            else:
+                return JsonResponse({'result': False, 'msg': 'Credenciais inválidas'})
+    return JsonResponse({'error': 'Método não permitido'})
+
+def home(request):
+    context = {'user': request.user}
+    return render(request, 'pages/home.html', context)
+
+def password_reset_view(request): return render(request, 'registration/password_reset.html')
+
 @csrf_exempt
 def password_reset_request(request):
+
+    return JsonResponse({'msg': 'ok'}) 
+
+def password_recover(request): return render(request, 'pages/password_recover.html')
+def password_reset_confirm_page(request, uidb64, token): return render(request, 'pages/password_reset_confirm.html', {'uidb64': uidb64, 'token': token})
+def password_reset_confirm(request): return JsonResponse({'msg': 'ok'})
+
+@login_required
+def lista_mesas(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        email = data.get('recover_email')
+        nome = request.POST.get('nome_mesa')
+        desc = request.POST.get('descricao')
+        if nome:
+            Mesa.objects.create(mestre=request.user, nome=nome, descricao=desc)
+            return redirect('mesas')
 
-        try:
-            user = User.objects.get(email=email)
-            
-            token = default_token_generator.make_token(user)
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            
-            reset_link = f"{request.scheme}://{request.get_host()}/password-reset-confirm/{uid}/{token}/"
-            
-            subject = 'FichaDnD - Recuperação de Senha'
-            message = f'''
-            Olá, aventureiro!
-            
-            Você solicitou a recuperação de senha para sua conta no FichaDnD.
-            
-            Clique no link abaixo para redefinir sua senha:
-            {reset_link}
-            
-            Se você não solicitou esta recuperação, ignore este e-mail.
-            
-            Este link expira em 24 horas.
-            
-            Boa sorte em suas aventuras!
-            '''
-            
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[email],
-                fail_silently=False,
-            )
-            
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
-            
-            return JsonResponse({
-                'result': True, 
-                'message': 'E-mail de recuperação enviado com sucesso!',
-                'reset_link': reset_link  # Only for development/testing
-            })
-            
-        except User.DoesNotExist:
-            return JsonResponse({
-                'result': True, 
-                'message': 'Se este e-mail estiver cadastrado, você receberá instruções de recuperação.'
-            })
-    
-    return JsonResponse({'error': 'Método não permitido'}, status=405)
+    minhas_mesas = Mesa.objects.filter(mestre=request.user)
+    mesas_participando = Mesa.objects.filter(participantes__jogador=request.user)
 
-
-def password_reset_confirm_page(request, uidb64, token):
-    return render(request, 'pages/password_reset_confirm.html', {
-        'uidb64': uidb64,
-        'token': token
+    return render(request, 'pages/mesas_list.html', {
+        'minhas_mesas': minhas_mesas,
+        'mesas_participando': mesas_participando
     })
 
-
-def password_reset_confirm(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        uidb64 = data.get('uidb64')
-        token = data.get('token')
-        new_password = data.get('new_password')
-        confirm_password = data.get('confirm_password')
-        
-        if new_password != confirm_password:
-            return JsonResponse({
-                'result': False,
-                'message': 'As senhas não coincidem'
-            }, status=400)
-        
-        if len(new_password) < 8:
-            return JsonResponse({
-                'result': False,
-                'message': 'A senha deve ter pelo menos 8 caracteres'
-            }, status=400)
-        
-        try:
-            uid = force_str(urlsafe_base64_decode(uidb64))
-            user = User.objects.get(pk=uid)
-            
-            if not default_token_generator.check_token(user, token):
-                return JsonResponse({
-                    'result': False,
-                    'message': 'Link de recuperação inválido ou expirado'
-                }, status=400)
-            
-            user.set_password(new_password)
-            user.save()
-            
-            return JsonResponse({
-                'result': True,
-                'message': 'Senha redefinida com sucesso! Você já pode fazer login.'
-            })
-            
-        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-            return JsonResponse({
-                'result': False,
-                'message': 'Link de recuperação inválido'
-            }, status=400)
+@login_required
+def detalhe_mesa(request, mesa_id):
+    mesa = get_object_or_404(Mesa, id=mesa_id)
     
-    return JsonResponse({'error': 'Método não permitido'}, status=405)
+    is_mestre = (mesa.mestre == request.user)
+    
+    participacao = ParticipacaoMesa.objects.filter(mesa=mesa, jogador=request.user).first()
+    
+    if not is_mestre and not participacao:
+        participacao = ParticipacaoMesa.objects.create(mesa=mesa, jogador=request.user)
+    
+    if request.method == 'POST' and 'vincular_ficha' in request.POST:
+        ficha_id = request.POST.get('ficha_id')
+        if ficha_id and participacao:
+            ficha = get_object_or_404(FichaPersonagem, id=ficha_id, usuario=request.user)
+            participacao.ficha = ficha
+            participacao.save()
+            return redirect('detalhe_mesa', mesa_id=mesa.id)
 
-def password_recover(request):
-    return render(request, 'pages/password_recover.html')
+    participantes = Mesa.objects.get(id=mesa_id).participantes.all().select_related('jogador', 'ficha')
+    
+    minhas_fichas = FichaPersonagem.objects.filter(usuario=request.user)
+
+    return render(request, 'pages/mesa_detail.html', {
+        'mesa': mesa,
+        'is_mestre': is_mestre,
+        'participantes': participantes,
+        'minhas_fichas': minhas_fichas,
+        'participacao_atual': participacao,
+        'absolute_uri': request.build_absolute_uri() 
+    })
+
+@login_required
+def mesa_actions(request, mesa_id, action, target_id):
+    mesa = get_object_or_404(Mesa, id=mesa_id)
+    
+    if mesa.mestre != request.user:
+        return redirect('detalhe_mesa', mesa_id=mesa.id)
+    
+    target_user = get_object_or_404(User, id=target_id)
+
+    if action == 'kick':
+        ParticipacaoMesa.objects.filter(mesa=mesa, jogador=target_user).delete()
+    
+    elif action == 'promote':
+
+        if not ParticipacaoMesa.objects.filter(mesa=mesa, jogador=request.user).exists():
+            ParticipacaoMesa.objects.create(mesa=mesa, jogador=request.user)
+            
+        mesa.mestre = target_user
+        mesa.save()
+        
+    return redirect('detalhe_mesa', mesa_id=mesa.id)

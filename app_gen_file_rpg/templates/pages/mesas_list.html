@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Salão das Mesas - FichaDnD</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Mate+SC&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+      --gold-primary: #d4af37;
+      --gold-dim: #8a7326;
+      --gold-bright: #ffdf80;
+      --bg-dark: #0a0a0c;
+      --card-bg: rgba(20, 20, 25, 0.95);
+      --text-main: #e0d8c3;
+      --border-color: #333;
+      --crimson: #8a0303;
+  }
+
+  body { 
+    background-color: var(--bg-dark);
+    background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #000000 100%);
+    color: var(--text-main); 
+    font-family: 'Crimson Pro', serif;
+    min-height: 100vh;
+  }
+
+  h1, h2, .table-name, button { font-family: 'Cinzel', serif; }
+  
+  /* --- Botão de Criar Mesa (Estilo Arcano) --- */
+  .btn-create {
+    background: linear-gradient(180deg, var(--crimson) 0%, #520000 100%);
+    border: 1px solid #ff4444;
+    color: #ffd700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 12px 30px;
+    font-weight: bold;
+    box-shadow: 0 0 15px rgba(138, 3, 3, 0.4);
+    transition: all 0.3s;
+  }
+  .btn-create:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 25px rgba(255, 68, 68, 0.6);
+    color: #fff;
+  }
+
+  /* --- Grid de Mesas --- */
+  .mesas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+    padding: 1rem 0;
+  }
+
+  /* --- Cartão da Mesa --- */
+  .table-card {
+    background-color: var(--card-bg);
+    border: 2px solid var(--gold-dim);
+    border-radius: 6px;
+    height: 280px;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none; /* Para o link */
+  }
+
+  .table-card:hover {
+    border-color: var(--gold-primary);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+    transform: translateY(-5px);
+  }
+
+  /* Retângulo Superior (Nome) */
+  .card-header-area {
+    height: 70px;
+    background: linear-gradient(to bottom, #1a1a1a, #0f0f12);
+    border-bottom: 2px solid var(--gold-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 15px;
+    z-index: 2;
+  }
+
+  .table-name {
+    color: var(--gold-bright);
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-align: center;
+    text-transform: uppercase;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    line-height: 1.2;
+  }
+
+  /* Área Inferior (Ícone) */
+  .card-body-area {
+    flex: 1;
+    background: radial-gradient(circle at center, #252525 0%, #0a0a0c 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* Ícone da Mesa (Ex: Mapa, Dados, Espadas) */
+  .table-icon {
+    width: 80px;
+    height: 80px;
+    color: #555;
+    transition: all 0.5s ease;
+    opacity: 0.7;
+  }
+
+  .table-card:hover .table-icon {
+    color: var(--gold-primary);
+    transform: scale(1.1);
+    opacity: 1;
+    filter: drop-shadow(0 0 10px var(--gold-dim));
+  }
+
+  /* Tag de "Mestre" ou "Jogador" */
+  .role-badge {
+    position: absolute;
+    bottom: 10px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-weight: bold;
+  }
+  
+  .badge-mestre { background-color: var(--crimson); color: white; border: 1px solid #ff4444; }
+  .badge-jogador { background-color: #1a4d1a; color: #d4f7d4; border: 1px solid #2d7a2d; }
+
+  /* --- Modal de Criação --- */
+  .modal-content {
+    background-color: #111;
+    border: 2px solid var(--gold-dim);
+    color: var(--text-main);
+  }
+  .modal-header { border-bottom: 1px solid #333; }
+  .modal-footer { border-top: 1px solid #333; }
+  .form-control {
+    background-color: #050505;
+    border: 1px solid #333;
+    color: var(--gold-bright);
+  }
+  .form-control:focus {
+    background-color: #0a0a0c;
+    border-color: var(--gold-primary);
+    color: var(--gold-bright);
+    box-shadow: none;
+  }
+
+</style>
+</head>
+<body>
+
+  {% include "components/navbar.html" %}
+
+  <div class="container py-5 mt-5">
+    
+    <div class="d-flex justify-content-between align-items-end mb-5 border-b border-[#333] pb-4">
+      <div>
+        <h1 class="text-4xl font-bold text-[#d4af37] mb-2 tracking-widest drop-shadow-md">
+          [ MESAS DE JOGO ]
+        </h1>
+        <p class="text-[#888] text-lg font-serif italic">
+          Onde as lendas são contadas.
+        </p>
+      </div>
+      
+      <button type="button" class="btn btn-create rounded-sm mb-2" data-bs-toggle="modal" data-bs-target="#createMesaModal">
+        + Criar Mesa
+      </button>
+    </div>
+
+    {% if minhas_mesas %}
+      <h2 class="text-xl text-[#d4af37] mb-4 border-l-4 border-[#8a0303] pl-3 uppercase tracking-wider">
+        Mestre do Calabouço (Minhas Mesas)
+      </h2>
+      <div class="mesas-grid mb-5">
+        {% for mesa in minhas_mesas %}
+          <a href="{% url 'detalhe_mesa' mesa.id %}" class="table-card">
+            <div class="card-header-area">
+              <span class="table-name">{{ mesa.nome }}</span>
+            </div>
+            <div class="card-body-area">
+              <svg class="table-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5M19 19C19 19.6 18.6 20 18 20H6C5.4 20 5 19.6 5 19V17H19V19Z"/>
+              </svg>
+              <span class="role-badge badge-mestre">Mestre</span>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if mesas_participando %}
+      <h2 class="text-xl text-[#d4af37] mb-4 border-l-4 border-[#1a4d1a] pl-3 uppercase tracking-wider">
+        Aventureiro (Participando)
+      </h2>
+      <div class="mesas-grid">
+        {% for mesa in mesas_participando %}
+          <a href="{% url 'detalhe_mesa' mesa.id %}" class="table-card">
+            <div class="card-header-area">
+              <span class="table-name">{{ mesa.nome }}</span>
+            </div>
+            <div class="card-body-area">
+              <svg class="table-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7,2H17A2,2 0 0,1 19,4V20A2,2 0 0,1 17,22H7A2,2 0 0,1 5,20V4A2,2 0 0,1 7,2M7,4V8H17V4H7M7,10V14H17V10H7M7,16V20H17V16H7Z" />
+              </svg>
+              <span class="role-badge badge-jogador">Jogador</span>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if not minhas_mesas and not mesas_participando %}
+      <div class="text-center py-10 opacity-50">
+        <p class="text-2xl font-serif mb-2">O vazio impera aqui.</p>
+        <p>Crie uma nova mesa para começar a aventura.</p>
+      </div>
+    {% endif %}
+
+  </div>
+
+  <div class="modal fade" id="createMesaModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title font-bold text-[#d4af37]" style="font-family: 'Cinzel', serif;">FUNDAR NOVA MESA</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="POST" action="{% url 'mesas' %}">
+          {% csrf_token %}
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="nome_mesa" class="form-label text-[#d4af37]">Nome da Mesa</label>
+              <input type="text" class="form-control" id="nome_mesa" name="nome_mesa" required placeholder="Ex: A Maldição de Strahd">
+            </div>
+            <div class="mb-3">
+              <label for="descricao" class="form-label text-[#d4af37]">Descrição (Opcional)</label>
+              <textarea class="form-control" id="descricao" name="descricao" rows="3" placeholder="Uma breve introdução..."></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-create py-2 px-4 text-sm">Criar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

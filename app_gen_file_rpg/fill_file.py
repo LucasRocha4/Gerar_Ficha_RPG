@@ -1,5 +1,4 @@
 from app_gen_file_rpg.utils import complements, backgrounds, subraces
-# Certifique-se de que este caminho está correto para o seu arquivo de traduções
 import random
 import requests
 
@@ -7,11 +6,8 @@ class FillFile:
     def __init__(self, request):
         self.api_base = 'https://www.dnd5eapi.co/api'
         self.session = requests.Session()
-        self.data_post = request.POST
-        
-        # Define o idioma (padrão 'pt')
+        self.data_post = request.POST        
         self.language = self.data_post.get('lang', request.GET.get('lang', 'pt'))
-
         self.name = self.data_post.get('charname', '')
         self.playername = self.data_post.get('playername', '')
         self.classe = self.data_post.get('classe', '')
@@ -20,8 +16,7 @@ class FillFile:
         self.background_slug = self.data_post.get('antecedente', '')
         self.race = self.data_post.get('race', '')
         self.subraca = self.data_post.get('subrace', '')
-        self.alignment = self.data_post.get('alignment', 'Neutral')
-        
+        self.alignment = self.data_post.get('alignment', 'Neutral')       
         self.race_data = {}
         self.class_data = {}
         self.subrace_data = {}
@@ -29,9 +24,7 @@ class FillFile:
         self.context = {}
 
     def _translate_term(self, term, dictionary):
-        """Método auxiliar para traduzir termos usando os mapas"""
         key = term.strip()
-        # Se o termo está no dicionário (ex: 'Longsword'), retorna a tradução para self.language
         if key in dictionary:
             return dictionary[key].get(self.language, key)
         return term
@@ -87,7 +80,7 @@ class FillFile:
             self.background_data = backgrounds.backgrounds.get(self.background_slug, {})
 
         except requests.RequestException:
-            pass # Print de erro removido
+            pass 
 
     def calculate_attributes(self):
         atribute_base = {
@@ -191,7 +184,6 @@ class FillFile:
         for _ in range(1, self.lvl):
             self.hp += random.randint(1, self.hit_die) + self.modifiers.get('con', 0)
             
-        # Print removido
         self.total_hd = f'{self.lvl}d{self.hit_die}'
         
         self.xp = complements.XP_BY_LEVEL.get(self.lvl, 0)
@@ -212,21 +204,18 @@ class FillFile:
 
         self.all_equipment_list = background_equipment_list + class_equipment_list + random_choices
         
-        # --- APLICAÇÃO DE TRADUÇÃO NA LISTA DE EQUIPAMENTOS ---
         translated_equipment = []
         for item in self.all_equipment_list:
-            # Separa quantidade do nome (ex: "1× Dagger" ou apenas "Dagger")
             if '×' in item:
                 qtd, nome_ingles = item.split('×', 1)
                 nome_ingles = nome_ingles.strip()
-                nome_traduzido = self._translate_term(nome_ingles, complements.EAPONS_MAP)
+                nome_traduzido = self._translate_term(nome_ingles, complements.WEAPONS_MAP)
                 translated_equipment.append(f"{qtd}× {nome_traduzido}")
             else:
                 nome_traduzido = self._translate_term(item, complements.WEAPONS_MAP)
                 translated_equipment.append(nome_traduzido)
 
         self.formatted_all_equipment = "\n".join(f"- {item}" for item in translated_equipment)
-        # -----------------------------------------------------
 
         self.armas_mods = {}
         self.armas_dano = {}
@@ -325,19 +314,17 @@ class FillFile:
         how_many = choose_val if isinstance(choose_val, int) else 0
 
         choice_background_languages = []
-        if 0 < how_many <= len(complements.LANGUAGES):
-            choice_background_languages = random.sample(complements.LANGUAGES, k=how_many)
+        if 0 < how_many <= len(complements.LANGUAGES_MAP):
+            choice_background_languages = random.sample(list(complements.LANGUAGES_MAP.keys()), k=how_many)
 
         lista_idiomas_ingles = race_languages + choice_background_languages + outras_proficiencias_background
         
-        # --- APLICAÇÃO DE TRADUÇÃO NOS IDIOMAS ---
         lista_idiomas_traduzida = [
             self._translate_term(lang, complements.LANGUAGES_MAP) 
             for lang in lista_idiomas_ingles
         ]
         
         self.idiomas = "\n".join(f"- {idioma}" for idioma in lista_idiomas_traduzida)
-        # ----------------------------------------
 
         def pick_trait(key):
             opts = self.background_data.get(key, {}).get('options')
@@ -392,18 +379,14 @@ class FillFile:
             'flaws': self.flaws,
         }
 
-        # --- APLICAÇÃO DE TRADUÇÃO NOS ATAQUES (Front-End Labels) ---
         for i, nome_ingles in enumerate(self.nomes_armas[:3]):
             mod = self.armas_mods[nome_ingles]
             dmg = self.armas_dano.get(nome_ingles, "")
             
-            # Traduz o nome da arma para exibição
             nome_exibicao = self._translate_term(nome_ingles, complements.WEAPONS_MAP)
             
             self.context[f"atkname{i+1}"]   = nome_exibicao
             self.context[f"atkbonus{i+1}"]  = f"{'+' if mod>=0 else ''}{mod}"
             self.context[f"atkdamage{i+1}"] = dmg
-        # ------------------------------------------------------------
 
-        # Print removido
         return self.context

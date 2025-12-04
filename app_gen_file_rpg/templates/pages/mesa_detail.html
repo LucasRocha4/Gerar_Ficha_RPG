@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>{{ mesa.nome }} - FichaDnD</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Mate+SC&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+      --gold-primary: #d4af37;
+      --gold-dim: #8a7326;
+      --gold-bright: #ffdf80;
+      --bg-dark: #0a0a0c;
+      --panel-bg: rgba(20, 20, 25, 0.98);
+      --crimson: #8a0303;
+      --text-main: #e0d8c3;
+  }
+
+  body { 
+    background-color: var(--bg-dark);
+    /* Fallback background se o gradiente falhar */
+    background-image: radial-gradient(circle at 50% 20%, #1a1a2e 0%, #000000 100%);
+    color: var(--text-main); 
+    font-family: 'Crimson Pro', serif;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, .btn-arcane { font-family: 'Cinzel', serif; }
+
+  /* Borda Mágica */
+  .arcane-box {
+    background-color: var(--panel-bg);
+    border: 1px solid var(--gold-dim);
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    position: relative;
+  }
+  .arcane-box::before {
+    content: ''; position: absolute; top: 2px; left: 2px; right: 2px; bottom: 2px;
+    border: 1px solid rgba(212, 175, 55, 0.3); pointer-events: none;
+  }
+
+  /* Lista de Jogadores */
+  .player-row {
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid #333;
+    transition: background 0.3s;
+  }
+  .player-row:hover { background: rgba(212, 175, 55, 0.05); }
+  
+  /* Botões de Ação */
+  .action-btn {
+    background: none; border: none; cursor: pointer;
+    transition: transform 0.2s; opacity: 0.7;
+  }
+  .action-btn:hover { transform: scale(1.2); opacity: 1; }
+  .btn-kick { color: #ff4444; }
+  .btn-promote { color: #ffd700; }
+  .btn-view { color: #4facfe; }
+
+  /* Avatar */
+  .player-avatar {
+    width: 40px; height: 40px;
+    background: #222; border: 1px solid var(--gold-dim);
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; color: var(--gold-dim);
+    font-weight: bold; font-family: 'Cinzel', serif;
+  }
+
+  /* Link de Convite */
+  .invite-box {
+    background: #111; border: 1px dashed var(--gold-dim);
+    padding: 10px; display: flex; align-items: center; gap: 10px;
+    cursor: pointer; transition: all 0.3s;
+  }
+  .invite-box:hover { border-color: var(--gold-bright); background: #161616; }
+
+</style>
+</head>
+<body>
+
+  {% include "components/navbar.html" %}
+
+  <div class="container py-5 mt-5">
+    
+    <div class="arcane-box p-8 rounded-lg mb-8 text-center relative">
+      <div class="absolute top-0 left-0 p-2 text-xs text-[#555] uppercase tracking-widest font-bold">Mesa de Jogo</div>
+      
+      <h1 class="text-4xl font-bold text-[#d4af37] mb-2 drop-shadow-md">{{ mesa.nome }}</h1>
+      <p class="text-[#bbb] text-lg italic max-w-2xl mx-auto">{{ mesa.descricao|default:"Uma aventura sem descrição." }}</p>
+      
+      <div class="mt-6 flex justify-center items-center gap-2">
+        <span class="text-sm text-[#666] uppercase tracking-widest">Mestre:</span>
+        <span class="text-[#d4af37] font-bold border-b border-[#d4af37]">{{ mesa.mestre.username }}</span>
+      </div>
+
+      <!-- Área de Convite -->
+      <div class="mt-8 flex justify-center">
+        <div class="invite-box rounded" onclick="copiarLink()">
+          <span class="text-2xl">📜</span>
+          <div class="text-left">
+            <div class="text-xs text-[#666] uppercase font-bold">Convidar Jogadores</div>
+            <div class="text-[#d4af37] text-sm truncate max-w-[200px] md:max-w-md" id="inviteLink">{{ absolute_uri }}</div>
+          </div>
+          <span class="text-xs bg-[#d4af37] text-black px-2 py-1 rounded font-bold ml-2">COPIAR</span>
+        </div>
+      </div>
+    </div>
+
+    {% if not is_mestre and not participacao_atual.ficha %}
+    <div class="arcane-box p-6 rounded-lg mb-8 border-l-4 border-[#d4af37]">
+      <h3 class="text-xl text-[#d4af37] mb-4">Escolha seu Avatar</h3>
+      <form method="POST" class="flex gap-4 items-end">
+        {% csrf_token %}
+        <input type="hidden" name="vincular_ficha" value="1">
+        <div class="flex-grow">
+          <label class="block text-xs text-[#888] mb-1 uppercase">Selecionar Ficha Salva</label>
+          <select name="ficha_id" class="w-full bg-[#111] border border-[#333] text-[#e0d8c3] p-2 rounded focus:border-[#d4af37] focus:outline-none">
+            {% for ficha in minhas_fichas %}
+              <option value="{{ ficha.id }}">{{ ficha.nome_personagem }} ({{ ficha.classe }} nv.{{ ficha.nivel }})</option>
+            {% empty %}
+              <option disabled>Nenhuma ficha encontrada</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="bg-[#d4af37] text-black px-6 py-2 font-bold rounded hover:bg-[#ffdf80] transition">
+          ENTRAR NA MESA
+        </button>
+      </form>
+      <div class="mt-2 text-xs text-[#666]">
+        Ou <a href="{% url 'home' %}" class="text-[#d4af37] hover:underline">crie uma nova ficha</a> primeiro.
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="arcane-box rounded-lg overflow-hidden">
+      <div class="bg-[#111] p-4 border-b border-[#333] flex justify-between items-center">
+        <h3 class="text-xl text-[#e0d8c3]">Aventureiros Reunidos</h3>
+        <span class="text-sm text-[#666]">{{ participantes.count }} Participante(s)</span>
+      </div>
+
+      <div class="divide-y divide-[#222]">
+        {% for part in participantes %}
+        <div class="player-row p-4 flex items-center justify-between">
+          
+          <div class="flex items-center gap-4">
+            <div class="player-avatar">
+              {{ part.jogador.username|make_list|first|upper }}
+            </div>
+            <div>
+              <div class="text-[#e0d8c3] font-bold text-lg">
+                {{ part.ficha.nome_personagem|default:"Sem Ficha" }}
+              </div>
+              <div class="text-sm text-[#666]">
+                Jogador: <span class="text-[#888]">{{ part.jogador.username }}</span>
+                {% if part.ficha %}
+                 • {{ part.ficha.classe }} • Nv. {{ part.ficha.nivel }}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-4">
+            
+            {% if part.ficha %}
+              {% if is_mestre or part.jogador == user %}
+                <a href="{% url 'criando' %}?load_id={{ part.ficha.id }}" class="action-btn btn-view" title="Ver Ficha">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                </a>
+              {% else %}
+                <span class="text-[#333] cursor-not-allowed" title="Ficha Oculta">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7c.44 0 .87-.03 1.28-.08"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+                </span>
+              {% endif %}
+            {% endif %}
+
+            {% if is_mestre and part.jogador != user %}
+              <div class="h-6 w-px bg-[#333] mx-2"></div>
+              
+              <a href="{% url 'mesa_actions' mesa.id 'promote' part.jogador.id %}" class="action-btn btn-promote" title="Promover a Mestre" onclick="return confirm('Tem certeza? Você perderá seus poderes de mestre.')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>
+              </a>
+
+              <a href="{% url 'mesa_actions' mesa.id 'kick' part.jogador.id %}" class="action-btn btn-kick" title="Expulsar Jogador" onclick="return confirm('Expulsar este jogador da mesa?')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>
+              </a>
+            {% endif %}
+
+          </div>
+        </div>
+        {% empty %}
+        <div class="p-8 text-center text-[#666]">
+          Ainda não há aventureiros nesta fogueira. Convide alguém!
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+<script>
+  function copiarLink() {
+    const text = document.getElementById('inviteLink').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      alert("Link copiado! Envie para seus jogadores.");
+    });
+  }
+</script>
+
+</body>
+</html>
