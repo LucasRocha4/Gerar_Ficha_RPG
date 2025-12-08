@@ -253,36 +253,59 @@
     });
 
     function gerarPDF() {
-        const preview = document.querySelector('.preview-box');
-        const wrapper = preview.querySelector('.scale-wrapper');
-        
-        document.querySelectorAll('.navbar, .lang-selector, .btn-arcane').forEach(el => el.style.display = 'none');
+            const preview = document.querySelector('.preview-box');
+            const wrapper = preview.querySelector('.scale-wrapper');
+            
+            // Esconde elementos da interface
+            document.querySelectorAll('.navbar, .lang-selector, .btn-arcane').forEach(el => el.style.display = 'none');
 
-        const origHeight = preview.style.height;
-        const origOverflow = preview.style.overflow;
-        const origTransform = wrapper.style.transform;
-        
-        preview.style.height = 'auto';
-        preview.style.overflow = 'visible';
-        wrapper.style.transform = 'none'; 
-        wrapper.style.width = 'fit-content'; 
+            // Salva os estilos originais
+            const origHeight = preview.style.height;
+            const origOverflow = preview.style.overflow;
+            const origTransform = wrapper.style.transform;
+            const origWidth = wrapper.style.width;
+            const origMargin = wrapper.style.margin; // Salvar margem original
+            
+            // Prepara para impressão: Remove scrolls e escalas
+            preview.style.height = 'auto';
+            preview.style.overflow = 'visible';
+            
+            // CORREÇÃO CRÍTICA 1: Forçar alinhamento e largura exata
+            wrapper.style.transform = 'none'; 
+            wrapper.style.width = '800px'; // Largura exata da ficha
+            wrapper.style.margin = '0 auto'; // Centraliza para evitar sair torto para a esquerda
+            
+            const opt = {
+                margin: 0,
+                filename: `ficha_{{ charname }}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2, 
+                    useCORS: true, 
+                    scrollY: 0,
+                    // CORREÇÃO CRÍTICA 2: Define a largura da janela de renderização
+                    // Isso impede que o CSS responsivo bagunce a ficha na hora do print
+                    windowWidth: 850 
+                },
+                jsPDF: { 
+                    // CORREÇÃO CRÍTICA 3: Usar pixels e tamanho customizado
+                    unit: 'px', 
+                    // [largura, altura] -> 800px largura, 1130px altura (proporção A4 aproximada)
+                    format: [800, 1135], 
+                    orientation: 'portrait' 
+                }
+            };
 
-        const opt = {
-            margin: 0,
-            filename: `ficha_{{ charname }}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
-            jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
-        };
-
-        html2pdf().set(opt).from(wrapper).save().then(() => {
-            document.querySelectorAll('.navbar, .lang-selector, .btn-arcane').forEach(el => el.style.display = 'flex');
-            wrapper.style.transform = origTransform;
-            wrapper.style.width = '100%';
-            preview.style.height = origHeight;
-            preview.style.overflow = origOverflow;
-        });
-    }
+            html2pdf().set(opt).from(wrapper).save().then(() => {
+                // Restaura tudo ao normal
+                document.querySelectorAll('.navbar, .lang-selector, .btn-arcane').forEach(el => el.style.display = 'flex');
+                wrapper.style.transform = origTransform;
+                wrapper.style.width = origWidth;
+                wrapper.style.margin = origMargin;
+                preview.style.height = origHeight;
+                preview.style.overflow = origOverflow;
+            });
+        }
 
     async function salvarFicha() {
         const usuarioLogado = {{ user.is_authenticated|yesno:"true,false" }};
