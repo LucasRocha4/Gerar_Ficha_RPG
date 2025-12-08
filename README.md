@@ -100,15 +100,4 @@ Modo offline (PWA)
 Licença
 MIT License – sinta-se à vontade para usar, modificar e distribuir livremente.
 
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/d40fba3b-1d3f-4e07-a03d-528dd37273ac" />
-
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/41390baf-23d4-48bf-858d-398f0242ea48" />
-
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/fdc09212-3cda-49cc-b531-2258840a4b6f" />
-
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/fdc24c7b-6843-41a9-9694-d1a4b444f2b7" />
-
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/aaf8a630-3d9e-491b-997f-8525a111c08a" />
-
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/3150b6ea-325c-404a-a484-8e2746403102" />
 
