@@ -256,24 +256,20 @@
             const preview = document.querySelector('.preview-box');
             const wrapper = preview.querySelector('.scale-wrapper');
             
-            // Esconde elementos da interface
             document.querySelectorAll('.navbar, .lang-selector, .btn-arcane').forEach(el => el.style.display = 'none');
 
-            // Salva os estilos originais
             const origHeight = preview.style.height;
             const origOverflow = preview.style.overflow;
             const origTransform = wrapper.style.transform;
             const origWidth = wrapper.style.width;
-            const origMargin = wrapper.style.margin; // Salvar margem original
+            const origMargin = wrapper.style.margin; 
             
-            // Prepara para impressão: Remove scrolls e escalas
             preview.style.height = 'auto';
             preview.style.overflow = 'visible';
             
-            // CORREÇÃO CRÍTICA 1: Forçar alinhamento e largura exata
             wrapper.style.transform = 'none'; 
-            wrapper.style.width = '800px'; // Largura exata da ficha
-            wrapper.style.margin = '0 auto'; // Centraliza para evitar sair torto para a esquerda
+            wrapper.style.width = '800px'; 
+            wrapper.style.margin = '0 auto';
             
             const opt = {
                 margin: 0,
@@ -283,21 +279,16 @@
                     scale: 2, 
                     useCORS: true, 
                     scrollY: 0,
-                    // CORREÇÃO CRÍTICA 2: Define a largura da janela de renderização
-                    // Isso impede que o CSS responsivo bagunce a ficha na hora do print
                     windowWidth: 850 
                 },
                 jsPDF: { 
-                    // CORREÇÃO CRÍTICA 3: Usar pixels e tamanho customizado
                     unit: 'px', 
-                    // [largura, altura] -> 800px largura, 1130px altura (proporção A4 aproximada)
                     format: [800, 1135], 
                     orientation: 'portrait' 
                 }
             };
 
             html2pdf().set(opt).from(wrapper).save().then(() => {
-                // Restaura tudo ao normal
                 document.querySelectorAll('.navbar, .lang-selector, .btn-arcane').forEach(el => el.style.display = 'flex');
                 wrapper.style.transform = origTransform;
                 wrapper.style.width = origWidth;
@@ -328,7 +319,7 @@
         const rawData = dataElement.textContent;
         const charData = JSON.parse(rawData);
         const csrftoken = getCookie('csrftoken');
-        const url = "/charsheet/"; 
+        const url = "fichas/"; 
 
         try {
             const response = await fetch(url, {

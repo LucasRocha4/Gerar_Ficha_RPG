@@ -35,3 +35,22 @@ class ParticipacaoMesa(models.Model):
 
     class Meta:
         unique_together = ('mesa', 'jogador')
+
+class Feedback(models.Model):
+    TIPO_CHOICES = [
+        ('bug', 'Reportar Erro (Bug)'),
+        ('sugestao', 'Sugestão de Melhoria'),
+        ('elogio', 'Elogio / Outros'),
+    ]
+    
+    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='sugestao')
+    mensagem = models.TextField()
+    data_envio = models.DateTimeField(auto_now_add=True)
+    
+    # Campo para controle interno (se você já leu/resolveu)
+    resolvido = models.BooleanField(default=False)
+
+    def __str__(self):
+        nome = self.usuario.username if self.usuario else "Anônimo"
+        return f"[{self.get_tipo_display()}] - {nome} ({self.data_envio.strftime('%d/%m/%Y')})"

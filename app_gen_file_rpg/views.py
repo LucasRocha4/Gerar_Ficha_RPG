@@ -10,17 +10,21 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import serializers
 from django.conf import settings
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMessage
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from app_gen_file_rpg.utils.complements import get_labels, translate_saves_list
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
-from .models import FichaPersonagem, Mesa, ParticipacaoMesa
+from .models import FichaPersonagem, Mesa, ParticipacaoMesa, Feedback
+from django.utils import timezone
+from calendar import monthrange
 
 import json
 import ast
+import csv
+import io
 
 def sanitize_data(data):
     if isinstance(data, str):
@@ -161,7 +165,10 @@ def user_registration(request):
 
 def home(request):
     context = {'user': request.user}
-    return render(request, 'pages/home.html', context)
+    return render(request, 'pages/homepage.html', context)
+
+def selecao(request):
+    return render(request, 'pages/home.html')
 
 def password_reset_view(request): return render(request, 'registration/password_reset.html')
 
@@ -244,3 +251,58 @@ def mesa_actions(request, mesa_id, action, target_id):
         mesa.save()
         
     return redirect('detalhe_mesa', mesa_id=mesa.id)
+
+def feedback(request):
+    if request.method == 'GET' and request.GET.get('gerar_relatorio') == 'sim':
+        try:
+            today = timezone.now().date()
+            _, last_day = monthrange(today.year, today.month)
+            
+            if today.day == last_day:
+                buffer = io.StringIO()
+                writer = csv.writer(buffer)
+                writer.writerow(['ID', 'Tipo', 'Mensagem', 'Data', 'Usuário'])
+                
+                feedbacks = Feedback.objects.filter(
+                    data_envio__year=today.year, 
+                    data_envio__month=today.month
+                )
+                
+                for f in feedbacks:
+                    user_name = f.usuario.username if f.usuario else 'Anônimo'
+                    writer.writerow([f.id, f.get_tipo_display(), f.mensagem, f.data_envio.strftime('%d/%m/%Y'), user_name])
+                
+                assunto = f'Relatório Mensal de Feedback - {today.strftime("%m/%Y")}'
+
+                email = EmailMessage(
+                    assunto,
+                    'Segue em anexo a planilha consolidada de feedbacks deste mês.',
+                    settings.EMAIL_HOST_USER,
+                    ['lucasdanielrocha23@gmail.com'], # Updated recipient
+                )
+                email.attach(f'feedbacks_{today.strftime("%Y_%m")}.csv', buffer.getvalue(), 'text/csv')
+                email.send()
+                
+                return JsonResponse({'message': 'Relatório mensal enviado com sucesso!'})
+            else:
+                return JsonResponse({'message': 'Hoje não é o último dia do mês. Relatório não enviado.'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            tipo = data.get('tipo')
+            mensagem = data.get('mensagem')
+            
+            Feedback.objects.create(
+                usuario=request.user if request.user.is_authenticated else None,
+                tipo=tipo,
+                mensagem=mensagem
+            )
+            
+            return JsonResponse({'message': 'Feedback salvo com sucesso!'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+            
+    return render(request, 'pages/feedback.html')
