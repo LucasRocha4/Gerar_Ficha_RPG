@@ -2,6 +2,8 @@
 
 Aplicação web simples, rápida e 100% em português para gerar fichas de personagem completas para **Dungeons & Dragons 5ª Edição**.
 
+Link: totired.pythonanywhere.com
+
 Com poucos cliques você escolhe raça, classe, antecedente e rola (ou define) os atributos — o sistema já calcula automaticamente:
 - Modificadores de atributos
 - Bônus raciais
