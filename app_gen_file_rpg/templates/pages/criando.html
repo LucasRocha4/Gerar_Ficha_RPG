@@ -36,167 +36,85 @@
       width: 100%;
       margin: 0;
       padding: 0;
-      
-      /* Fundo Arcano */
       background-color: #0a0a0c !important; 
       background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #000000 100%) !important;
-      
       color: var(--text-main);
       font-family: 'Crimson Pro', serif;
       overflow: hidden; 
     }
 
     /* --- ESTILOS DA INTERFACE --- */
-
     .lang-selector {
-      position: fixed;
-      top: 90px;
-      left: 3vw;
-      background: var(--panel-bg);
-      border: 1px solid var(--gold-dim);
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
+      position: fixed; top: 90px; left: 3vw;
+      background: var(--panel-bg); border: 1px solid var(--gold-dim);
+      padding: 0.5rem 1rem; border-radius: 4px;
       box-shadow: 0 0 15px rgba(0,0,0,0.5);
-      display: flex;
-      align-items: center;
-      font-size: 0.9rem;
-      z-index: 100;
-      font-family: 'Cinzel', serif;
-      color: var(--gold-primary);
+      display: flex; align-items: center;
+      font-size: 0.9rem; z-index: 100;
+      font-family: 'Cinzel', serif; color: var(--gold-primary);
     }
-
     .lang-selector label { margin: 0 0.5rem; color: var(--gold-bright); }
-    
-    input[type=range] {
-      accent-color: var(--gold-primary);
-    }
+    input[type=range] { accent-color: var(--gold-primary); }
 
-    /* Botões Arcanos */
     .btn-arcane {
-      font-family: 'Cinzel', serif;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      font-weight: bold;
+      font-family: 'Cinzel', serif; text-transform: uppercase;
+      letter-spacing: 1px; font-weight: bold;
       border: 1px solid var(--gold-dim);
-      box-shadow: 0 4px 6px rgba(0,0,0,0.5);
-      transition: all 0.3s ease;
-      color: var(--gold-bright);
-      background: linear-gradient(180deg, #1a1a1a 0%, #000 100%);
-      position: fixed;
-      left: 3vw;
-      z-index: 100;
-      width: 160px;
-      text-align: center;
-      padding: 10px 0;
-      border-radius: 4px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.5); transition: all 0.3s ease;
+      color: var(--gold-bright); background: linear-gradient(180deg, #1a1a1a 0%, #000 100%);
+      position: fixed; left: 3vw; z-index: 100;
+      width: 160px; text-align: center; padding: 10px 0; border-radius: 4px;
     }
-
     .btn-arcane:hover {
-      border-color: var(--gold-primary);
-      box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
-      color: #fff;
-      transform: translateY(-2px);
+      border-color: var(--gold-primary); box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+      color: #fff; transform: translateY(-2px);
     }
-
-    .btn-download {
-      top: 150px;
-    }
-
+    .btn-download { top: 150px; }
     .btn-save {
       top: 210px;
       background: linear-gradient(180deg, var(--crimson) 0%, #520000 100%);
-      border-color: #ff4444;
-      color: #ffd700;
+      border-color: #ff4444; color: #ffd700;
     }
     .btn-save:hover {
       background: linear-gradient(180deg, var(--crimson-light) 0%, #7a0000 100%);
       box-shadow: 0 0 15px var(--crimson);
     }
 
-    /* --- MOLDURA DE PREVIEW --- */
+    /* --- PREVIEW BOX --- */
     .preview-box {
-      position: fixed;
-      top: 90px;
-      right: 3vw;
-      width: 65vw;
-      height: calc(100vh - 110px);
-      border: 2px solid var(--gold-dim);
-      border-radius: 8px;
-      box-shadow: 
-        0 0 30px rgba(0,0,0,0.8),
-        inset 0 0 50px rgba(0,0,0,0.5);
-      background: #222; 
-      padding: 40px 0;
-      box-sizing: border-box;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      scrollbar-width: thin;
-      scrollbar-color: var(--gold-dim) #111;
+      position: fixed; top: 90px; right: 3vw;
+      width: 65vw; height: calc(100vh - 110px);
+      border: 2px solid var(--gold-dim); border-radius: 8px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 0 50px rgba(0,0,0,0.5);
+      background: #222; padding: 40px 0;
+      box-sizing: border-box; overflow-y: auto;
+      display: flex; flex-direction: column; align-items: center;
+      scrollbar-width: thin; scrollbar-color: var(--gold-dim) #111;
     }
-
     .preview-box::-webkit-scrollbar { width: 10px; }
     .preview-box::-webkit-scrollbar-track { background: #111; }
-    .preview-box::-webkit-scrollbar-thumb {
-      background-color: var(--gold-dim);
-      border-radius: 5px;
-      border: 2px solid #111;
-    }
+    .preview-box::-webkit-scrollbar-thumb { background-color: var(--gold-dim); border-radius: 5px; border: 2px solid #111; }
 
-    /* --- CONTEÚDO DA FICHA (MANTIDO) --- */
+    /* --- FICHA INTERNA --- */
     .scale-wrapper {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 30px;
-        padding-bottom: 50px;
-        transform: scale(0.9);
-        transform-origin: top center;
+        width: 100%; display: flex; flex-direction: column; align-items: center;
+        gap: 30px; padding-bottom: 50px;
+        transform: scale(0.9); transform-origin: top center;
     }
-
     .scale-wrapper > * {
-        width: 800px !important;
-        min-width: 800px !important;
-        max-width: 800px !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        background-color: var(--bg-paper);
-        color: var(--ink-color); 
+        width: 800px !important; min-width: 800px !important; max-width: 800px !important;
+        margin: 0 !important; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        background-color: var(--bg-paper); color: var(--ink-color); 
         box-sizing: border-box; 
     }
-
-    /* AJUSTE: Relaxei as regras para não quebrar caixas de modificadores */
     .scale-wrapper input, .scale-wrapper textarea, .scale-wrapper select {
-        /* Remove o !important do background para permitir branco nos modificadores */
-        background-color: transparent; 
-        color: var(--ink-color) !important;
-        border-color: var(--border-color);
-        /* REMOVIDO: border-bottom-width: 1px; -> Isso transformava caixas em linhas */
-        font-family: 'Crimson Text', serif !important;
+        background-color: transparent; color: var(--ink-color) !important;
+        border-color: var(--border-color); font-family: 'Crimson Text', serif !important;
     }
-    
-    /* Regra para garantir que inputs comuns pareçam linhas, mas sem quebrar os outros */
-    .scale-wrapper input:not([class*="modifier"]), 
-    .scale-wrapper textarea:not([class*="modifier"]) {
-       /* Se necessário, adicione classes específicas aqui se os inputs padrão ficarem sem borda */
-    }
-
     .scale-wrapper input:focus, .scale-wrapper textarea:focus {
-        outline: none !important;
-        box-shadow: none !important;
-        border-color: var(--accent-color) !important;
+        outline: none !important; box-shadow: none !important; border-color: var(--accent-color) !important;
     }
-
-    /* Garante legibilidade em campos pretos (ex: spell slots) */
-    .spell-slot.bg-black {
-      background-color: #000 !important;
-      color: white !important;
-    }
+    .spell-slot.bg-black { background-color: #000 !important; color: white !important; }
 </style>
 
   <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js"></script>
@@ -253,56 +171,159 @@
     });
 
     function gerarPDF() {
-            const preview = document.querySelector('.preview-box');
-            const wrapper = preview.querySelector('.scale-wrapper');
-            
-            document.querySelectorAll('.navbar, .lang-selector, .btn-arcane').forEach(el => el.style.display = 'none');
+        const preview = document.querySelector('.preview-box');
+        const wrapper = preview.querySelector('.scale-wrapper');
+        document.querySelectorAll('.navbar, .lang-selector, .btn-arcane').forEach(el => el.style.display = 'none');
+        
+        const origHeight = preview.style.height;
+        const origOverflow = preview.style.overflow;
+        const origTransform = wrapper.style.transform;
+        
+        preview.style.height = 'auto';
+        preview.style.overflow = 'visible';
+        wrapper.style.transform = 'none'; 
+        wrapper.style.width = 'fit-content'; 
 
-            const origHeight = preview.style.height;
-            const origOverflow = preview.style.overflow;
-            const origTransform = wrapper.style.transform;
-            const origWidth = wrapper.style.width;
-            const origMargin = wrapper.style.margin; 
-            
-            preview.style.height = 'auto';
-            preview.style.overflow = 'visible';
-            
-            wrapper.style.transform = 'none'; 
-            wrapper.style.width = '800px'; 
-            wrapper.style.margin = '0 auto';
-            
-            const opt = {
-                margin: 0,
-                filename: `ficha_{{ charname }}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { 
-                    scale: 2, 
-                    useCORS: true, 
-                    scrollY: 0,
-                    windowWidth: 850 
-                },
-                jsPDF: { 
-                    unit: 'px', 
-                    format: [800, 1135], 
-                    orientation: 'portrait' 
-                }
-            };
+        const opt = {
+            margin: 0,
+            filename: `ficha_{{ charname }}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+            jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
+        };
 
-            html2pdf().set(opt).from(wrapper).save().then(() => {
-                document.querySelectorAll('.navbar, .lang-selector, .btn-arcane').forEach(el => el.style.display = 'flex');
-                wrapper.style.transform = origTransform;
-                wrapper.style.width = origWidth;
-                wrapper.style.margin = origMargin;
-                preview.style.height = origHeight;
-                preview.style.overflow = origOverflow;
+        html2pdf().set(opt).from(wrapper).save().then(() => {
+            document.querySelectorAll('.navbar, .lang-selector, .btn-arcane').forEach(el => el.style.display = 'flex');
+            wrapper.style.transform = origTransform;
+            wrapper.style.width = '100%';
+            preview.style.height = origHeight;
+            preview.style.overflow = origOverflow;
+        });
+    }
+
+    // --- MAPA DE CAMPOS (Centralizado para uso no Load e Save) ---
+    const MAPPING = {
+        'classlevel': 'classe',
+        'ac': 'ca',
+        'features': 'features_traits', // Mapeia input 'features' para JSON 'features_traits'
+        'equipment': 'formatted_all_equipment',
+        'personality': 'personality_traits',
+        'remaininghd': 'hit_dice',
+        'totalhd': 'total_hd'
+    };
+
+    // Campos simples (texto/numero)
+    const SIMPLE_FIELDS = [
+        'charname', 'classlevel', 'background', 'playername', 'race', 
+        'alignment', 'xp', 'ac', 'speed', 'maxhp', 'temphp', 'currenthp', 
+        'personality', 'ideals', 'bonds', 'flaws', 'features', 'equipment',
+        'cp', 'sp', 'ep', 'gp', 'pp', 'otherprofs', 'passiveperception',
+        'initiative', 'remaininghd', 'totalhd',
+        'atkname1', 'atkbonus1', 'atkdamage1',
+        'atkname2', 'atkbonus2', 'atkdamage2',
+        'atkname3', 'atkbonus3', 'atkdamage3'
+    ];
+
+    // --- FUNÇÃO 1: CARREGAR DADOS DO JSON PARA O HTML (NOVO) ---
+    function loadCharDataToDOM(charData) {
+        if (!charData) return;
+
+        // 1. Campos Simples
+        SIMPLE_FIELDS.forEach(field => {
+            const jsonKey = MAPPING[field] || field;
+            const el = document.querySelector(`[name="${field}"]`);
+            if (el && charData[jsonKey] !== undefined) {
+                el.value = charData[jsonKey];
+            }
+        });
+
+        // 2. Atributos
+        if (charData.atributo) {
+            ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'].forEach(attr => {
+                const el = document.querySelector(`[name="${attr}score"]`);
+                const val = charData.atributo[attr.toLowerCase()];
+                if (el && val !== undefined) el.value = val;
             });
         }
+
+        // 3. Modificadores
+        if (charData.mod) {
+             const mods = { 'Strength': 'str', 'Dexterity': 'dex', 'Constitution': 'con', 'Intelligence': 'int', 'Wisdom': 'wis', 'Charisma': 'cha' };
+             for (const [attr, key] of Object.entries(mods)) {
+                 const el = document.querySelector(`[name="${attr}mod"]`);
+                 if (el && charData.mod[key] !== undefined) el.value = charData.mod[key];
+             }
+        }
+
+        // 4. Checkboxes (Perícias e Saves)
+        // Varre o JSON procurando chaves que coincidem com names de checkboxes
+        document.querySelectorAll('input[type="checkbox"]').forEach(box => {
+            if(box.name && charData[box.name] !== undefined) {
+                box.checked = charData[box.name];
+            }
+        });
+    }
+
+    // --- FUNÇÃO 2: CAPTURAR DADOS DO HTML PARA SALVAR ---
+    function updateCharDataFromDOM(charData) {
+        const getVal = (name) => {
+            const el = document.querySelector(`[name="${name}"]`);
+            if (!el) return null;
+            if (el.type === 'checkbox') return el.checked;
+            return el.value;
+        };
+
+        // Campos Simples
+        SIMPLE_FIELDS.forEach(field => {
+            const val = getVal(field);
+            if (val !== null) {
+                const key = MAPPING[field] || field;
+                charData[key] = val;
+            }
+        });
+
+        // Atributos
+        if (!charData.atributo) charData.atributo = {};
+        ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'].forEach(attr => {
+            const score = getVal(`${attr}score`);
+            if (score !== null) charData.atributo[attr.toLowerCase()] = score;
+        });
+        
+        // Modificadores
+        if (!charData.mod) charData.mod = {};
+        const mods = { 'Strength': 'str', 'Dexterity': 'dex', 'Constitution': 'con', 'Intelligence': 'int', 'Wisdom': 'wis', 'Charisma': 'cha' };
+        for (const [attr, key] of Object.entries(mods)) {
+            const val = getVal(`${attr}mod`);
+            if(val !== null) charData.mod[key] = val;
+        }
+
+        // Checkboxes Gerais
+        document.querySelectorAll('input[type="checkbox"]').forEach(box => {
+            if(box.name) {
+                charData[box.name] = box.checked;
+            }
+        });
+
+        return charData;
+    }
+
+    // --- INICIALIZAÇÃO: CARREGA DADOS AO ABRIR ---
+    document.addEventListener("DOMContentLoaded", () => {
+        try {
+            const rawData = document.getElementById('char-data').textContent;
+            const charData = JSON.parse(rawData);
+            // Preenche os campos imediatamente para garantir que o usuário veja o que salvou
+            loadCharDataToDOM(charData);
+        } catch(e) {
+            console.error("Erro ao carregar dados da ficha:", e);
+        }
+    });
 
     async function salvarFicha() {
         const usuarioLogado = {{ user.is_authenticated|yesno:"true,false" }};
 
         if (!usuarioLogado) {
-            if (confirm("Você precisa estar logado para salvar sua ficha no banco de dados. Deseja entrar ou criar uma conta agora?")) {
+            if (confirm("Você precisa estar logado para salvar. Deseja entrar agora?")) {
                 window.location.href = "{% url 'login' %}"; 
             }
             return;
@@ -312,14 +333,18 @@
 
         const dataElement = document.getElementById('char-data');
         if (!dataElement) {
-            alert("Erro: Dados da ficha não encontrados no HTML.");
+            alert("Erro crítico: Dados da ficha não encontrados.");
             return;
         }
         
-        const rawData = dataElement.textContent;
-        const charData = JSON.parse(rawData);
+        let rawData = dataElement.textContent;
+        let charData = JSON.parse(rawData);
+
+        // Atualiza o JSON com o que está na tela
+        charData = updateCharDataFromDOM(charData);
+
         const csrftoken = getCookie('csrftoken');
-        const url = "fichas/"; 
+        const url = "/charsheet/"; 
 
         try {
             const response = await fetch(url, {
@@ -333,20 +358,22 @@
 
             const contentType = response.headers.get("content-type");
             if (contentType && contentType.indexOf("application/json") === -1) {
-                throw new Error("Sessão expirada ou erro de URL.");
+                throw new Error("Erro de servidor. Verifique se está logado.");
             }
 
             const result = await response.json();
 
             if (response.ok) {
                 alert("Sucesso: " + (result.message || "Ficha salva!"));
+                // Atualiza o JSON script na página para refletir o novo estado
+                document.getElementById('char-data').textContent = JSON.stringify(charData);
             } else {
                 console.error("Erro no backend:", result);
                 alert("Erro ao salvar: " + (result.error || "Erro desconhecido"));
             }
         } catch (error) {
             console.error('Erro:', error);
-            alert("Ocorreu um erro. Se você não estiver logado, recarregue a página.");
+            alert("Ocorreu um erro de conexão.");
         }
     }
 </script>

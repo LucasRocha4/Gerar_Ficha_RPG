@@ -17,6 +17,7 @@ from django.utils.encoding import force_bytes, force_str
 from app_gen_file_rpg.utils.complements import get_labels, translate_saves_list
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
+# Importando modelos
 from .models import FichaPersonagem, Mesa, ParticipacaoMesa, Feedback
 from django.utils import timezone
 from calendar import monthrange
@@ -26,6 +27,7 @@ import ast
 import csv
 import io
 
+# --- FUNÇÃO AUXILIAR DE LIMPEZA ---
 def sanitize_data(data):
     if isinstance(data, str):
         return data.strip()
@@ -36,9 +38,31 @@ def sanitize_data(data):
     else:
         return data
 
+# --- VIEW: SELEÇÃO (A "Home" antiga do formulário) ---
+# Esta é a view que estava faltando para o makemigrations
+def selecao(request):
+    """
+    Renderiza o formulário de criação/seleção de personagem.
+    """
+    context = {'user': request.user}
+    return render(request, 'pages/home.html', context)
 
+# --- VIEW: LANDING PAGE (A nova "Home" do site) ---
+def home(request):
+    """
+    Renderiza a página inicial (capa/landing).
+    """
+    return render(request, 'pages/homepage.html')
+
+
+# --- VIEW PRINCIPAL: CHARSHEET (GALERIA E SALVAMENTO) ---
 @login_required 
 def charsheet(request):
+    """
+    View Híbrida:
+    - POST: Salva a ficha atual (API chamada pelo botão salvar).
+    - GET: Lista as fichas salvas (Galeria).
+    """
     if request.method == 'POST':
         try:
             raw_body = request.body.decode('utf-8')
@@ -47,6 +71,7 @@ def charsheet(request):
 
             data = json.loads(raw_body)
 
+            # Correção para string encapsulada
             if isinstance(data, str):
                 try:
                     data = json.loads(data)
@@ -57,9 +82,15 @@ def charsheet(request):
                         return JsonResponse({'error': 'Formato de dados inválido.'}, status=400)
 
             if not isinstance(data, dict):
-                 return JsonResponse({'error': 'Dados inválidos (Esperado um objeto JSON).'}, status=400)
+                 return JsonResponse({'error': 'Dados inválidos.'}, status=400)
 
             clean_data = sanitize_data(data)
+            
+            # --- ATUALIZAÇÃO DA SESSÃO (CORREÇÃO DO BUG) ---
+            # Atualiza a sessão imediatamente com os dados salvos
+            # Isso impede que o F5 traga dados antigos
+            request.session['ficha_data'] = clean_data
+            # -----------------------------------------------
             
             nome = clean_data.get('charname', 'Sem Nome')
             classe_full = str(clean_data.get('classe', 'Desconhecido'))
@@ -87,10 +118,11 @@ def charsheet(request):
             return JsonResponse({'error': f"Erro interno: {str(e)}"}, status=500)
     
     else:
+        # MODO GET: LISTAGEM
         fichas = FichaPersonagem.objects.filter(usuario=request.user).order_by('-data_atualizacao')
-        return render(request, 'pages/charsheet.html', {'fichas': fichas})
+        return render(request, 'pages/saved_sheets.html', {'fichas': fichas})
 
-
+# --- VIEW: CRIANDO (GERAÇÃO E CARREGAMENTO) ---
 def criando(request):
     target_lang = request.GET.get('lang', request.POST.get('lang', 'pt'))
     
@@ -118,11 +150,11 @@ def criando(request):
     elif request.method == 'GET':
         data_context = request.session.get('ficha_data')
         if not data_context:
-            return redirect('home')
+            # Se não tem dados, manda para a tela de seleção (antiga home)
+            return redirect('selecao') 
         context = data_context.copy()
 
     context['full_data_json'] = request.session.get('ficha_data', context)
-
     context['labels'] = get_labels(target_lang)
     
     if 'saves' in context:
@@ -134,53 +166,64 @@ def criando(request):
     return render(request, 'pages/criando.html', context)
 
 
-
-class RegistrarUsuario(CreateView):
-    form_class = RegistrarUsuario
-    template_name = 'registration/registrar.html'
-    success_url = reverse_lazy('login')
-
-def user_registration(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        username = data.get('username')
-        email = data.get('email')
-        password = data.get('password')
-        is_registering = data.get('is_registering', False)
-
-        if is_registering:
-            if User.objects.filter(username=username).exists():
-                return JsonResponse({'result': False, 'msg': 'Usuário já existe'})
-            user = User.objects.create_user(username=username, password=password, email=email)
-            login(request, user)
-            return JsonResponse({'result': True, 'msg': 'Usuário registrado e logado!'})
-        else:
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
-                login(request, user) 
-                return JsonResponse({'result': True, 'msg': 'Login realizado'})
+# --- VIEW DE FEEDBACK ---
+def feedback(request):
+    # Gatilho para relatório mensal
+    if request.method == 'GET' and request.GET.get('gerar_relatorio') == 'sim':
+        try:
+            today = timezone.now().date()
+            _, last_day = monthrange(today.year, today.month)
+            
+            if today.day == last_day:
+                buffer = io.StringIO()
+                writer = csv.writer(buffer)
+                writer.writerow(['ID', 'Tipo', 'Mensagem', 'Data', 'Usuário'])
+                
+                feedbacks = Feedback.objects.filter(
+                    data_envio__year=today.year, 
+                    data_envio__month=today.month
+                )
+                
+                for f in feedbacks:
+                    user_name = f.usuario.username if f.usuario else 'Anônimo'
+                    writer.writerow([f.id, f.get_tipo_display(), f.mensagem, f.data_envio.strftime('%d/%m/%Y'), user_name])
+                
+                email = EmailMessage(
+                    f'Relatório Mensal de Feedback - {today.strftime("%m/%Y")}',
+                    'Segue em anexo a planilha consolidada de feedbacks deste mês.',
+                    settings.EMAIL_HOST_USER,
+                    ['lucasdanielrocha23@gmail.com'], 
+                )
+                email.attach(f'feedbacks_{today.strftime("%Y_%m")}.csv', buffer.getvalue(), 'text/csv')
+                email.send()
+                
+                return JsonResponse({'message': 'Relatório mensal enviado com sucesso!'})
             else:
-                return JsonResponse({'result': False, 'msg': 'Credenciais inválidas'})
-    return JsonResponse({'error': 'Método não permitido'})
+                return JsonResponse({'message': 'Hoje não é o último dia do mês.'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
 
-def home(request):
-    context = {'user': request.user}
-    return render(request, 'pages/homepage.html', context)
+    # Salvar Feedback
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            tipo = data.get('tipo')
+            mensagem = data.get('mensagem')
+            
+            Feedback.objects.create(
+                usuario=request.user if request.user.is_authenticated else None,
+                tipo=tipo,
+                mensagem=mensagem
+            )
+            
+            return JsonResponse({'message': 'Feedback salvo com sucesso!'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+            
+    return render(request, 'pages/feedback.html')
 
-def selecao(request):
-    return render(request, 'pages/home.html')
 
-def password_reset_view(request): return render(request, 'registration/password_reset.html')
-
-@csrf_exempt
-def password_reset_request(request):
-
-    return JsonResponse({'msg': 'ok'}) 
-
-def password_recover(request): return render(request, 'pages/password_recover.html')
-def password_reset_confirm_page(request, uidb64, token): return render(request, 'pages/password_reset_confirm.html', {'uidb64': uidb64, 'token': token})
-def password_reset_confirm(request): return JsonResponse({'msg': 'ok'})
-
+# --- VIEWS DE MESA ---
 @login_required
 def lista_mesas(request):
     if request.method == 'POST':
@@ -201,9 +244,7 @@ def lista_mesas(request):
 @login_required
 def detalhe_mesa(request, mesa_id):
     mesa = get_object_or_404(Mesa, id=mesa_id)
-    
     is_mestre = (mesa.mestre == request.user)
-    
     participacao = ParticipacaoMesa.objects.filter(mesa=mesa, jogador=request.user).first()
     
     if not is_mestre and not participacao:
@@ -217,8 +258,7 @@ def detalhe_mesa(request, mesa_id):
             participacao.save()
             return redirect('detalhe_mesa', mesa_id=mesa.id)
 
-    participantes = Mesa.objects.get(id=mesa_id).participantes.all().select_related('jogador', 'ficha')
-    
+    participantes = mesa.participantes.all().select_related('jogador', 'ficha')
     minhas_fichas = FichaPersonagem.objects.filter(usuario=request.user)
 
     return render(request, 'pages/mesa_detail.html', {
@@ -227,13 +267,12 @@ def detalhe_mesa(request, mesa_id):
         'participantes': participantes,
         'minhas_fichas': minhas_fichas,
         'participacao_atual': participacao,
-        'absolute_uri': request.build_absolute_uri() 
+        'absolute_uri': request.build_absolute_uri()
     })
 
 @login_required
 def mesa_actions(request, mesa_id, action, target_id):
     mesa = get_object_or_404(Mesa, id=mesa_id)
-    
     if mesa.mestre != request.user:
         return redirect('detalhe_mesa', mesa_id=mesa.id)
     
@@ -243,66 +282,46 @@ def mesa_actions(request, mesa_id, action, target_id):
         ParticipacaoMesa.objects.filter(mesa=mesa, jogador=target_user).delete()
     
     elif action == 'promote':
-
         if not ParticipacaoMesa.objects.filter(mesa=mesa, jogador=request.user).exists():
             ParticipacaoMesa.objects.create(mesa=mesa, jogador=request.user)
-            
         mesa.mestre = target_user
         mesa.save()
-        
+
     return redirect('detalhe_mesa', mesa_id=mesa.id)
 
-def feedback(request):
-    if request.method == 'GET' and request.GET.get('gerar_relatorio') == 'sim':
-        try:
-            today = timezone.now().date()
-            _, last_day = monthrange(today.year, today.month)
-            
-            if today.day == last_day:
-                buffer = io.StringIO()
-                writer = csv.writer(buffer)
-                writer.writerow(['ID', 'Tipo', 'Mensagem', 'Data', 'Usuário'])
-                
-                feedbacks = Feedback.objects.filter(
-                    data_envio__year=today.year, 
-                    data_envio__month=today.month
-                )
-                
-                for f in feedbacks:
-                    user_name = f.usuario.username if f.usuario else 'Anônimo'
-                    writer.writerow([f.id, f.get_tipo_display(), f.mensagem, f.data_envio.strftime('%d/%m/%Y'), user_name])
-                
-                assunto = f'Relatório Mensal de Feedback - {today.strftime("%m/%Y")}'
 
-                email = EmailMessage(
-                    assunto,
-                    'Segue em anexo a planilha consolidada de feedbacks deste mês.',
-                    settings.EMAIL_HOST_USER,
-                    ['lucasdanielrocha23@gmail.com'], # Updated recipient
-                )
-                email.attach(f'feedbacks_{today.strftime("%Y_%m")}.csv', buffer.getvalue(), 'text/csv')
-                email.send()
-                
-                return JsonResponse({'message': 'Relatório mensal enviado com sucesso!'})
-            else:
-                return JsonResponse({'message': 'Hoje não é o último dia do mês. Relatório não enviado.'})
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+# --- VIEWS DE AUTENTICAÇÃO ---
+class RegistrarUsuario(CreateView):
+    form_class = RegistrarUsuario
+    template_name = 'registration/registrar.html'
+    success_url = reverse_lazy('login')
 
+def user_registration(request):
     if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            tipo = data.get('tipo')
-            mensagem = data.get('mensagem')
-            
-            Feedback.objects.create(
-                usuario=request.user if request.user.is_authenticated else None,
-                tipo=tipo,
-                mensagem=mensagem
-            )
-            
-            return JsonResponse({'message': 'Feedback salvo com sucesso!'})
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
-            
-    return render(request, 'pages/feedback.html')
+        data = json.loads(request.body)
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+        is_registering = data.get('is_registering', False)
+
+        if is_registering:
+            if User.objects.filter(username=username).exists():
+                return JsonResponse({'result': False, 'msg': 'Usuário já existe'})
+            user = User.objects.create_user(username=username, password=password, email=email)
+            login(request, user)
+            return JsonResponse({'result': True, 'msg': 'Usuário registrado!'})
+        else:
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user) 
+                return JsonResponse({'result': True, 'msg': 'Login realizado'})
+            else:
+                return JsonResponse({'result': False, 'msg': 'Credenciais inválidas'})
+    return JsonResponse({'error': 'Método não permitido'})
+
+def password_reset_view(request): return render(request, 'registration/password_reset.html')
+@csrf_exempt
+def password_reset_request(request): return JsonResponse({'msg': 'ok'}) 
+def password_recover(request): return render(request, 'pages/password_recover.html')
+def password_reset_confirm_page(request, uidb64, token): return render(request, 'pages/password_reset_confirm.html', {'uidb64': uidb64, 'token': token})
+def password_reset_confirm(request): return JsonResponse({'msg': 'ok'})

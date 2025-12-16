@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+# --- FICHA DE PERSONAGEM ---
 class FichaPersonagem(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fichas')
     
@@ -15,27 +16,27 @@ class FichaPersonagem(models.Model):
 
     def __str__(self):
         return f"{self.nome_personagem} - {self.classe}"
-    
+
+# --- MESAS DE JOGO ---
 class Mesa(models.Model):
     mestre = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mesas_mestradas')
     nome = models.CharField(max_length=100)
     descricao = models.TextField(blank=True)
-    senha = models.CharField(max_length=20, blank=True, null=True, help_text="Opcional: Senha para entrar")
     data_criacao = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.nome} (Mestre: {self.mestre.username})"
+        return self.nome
 
 class ParticipacaoMesa(models.Model):
     mesa = models.ForeignKey(Mesa, on_delete=models.CASCADE, related_name='participantes')
     jogador = models.ForeignKey(User, on_delete=models.CASCADE)
-    # Aqui ligamos a ficha específica que o jogador escolheu para ESTA mesa
-    ficha = models.ForeignKey('FichaPersonagem', on_delete=models.SET_NULL, null=True, blank=True)
+    ficha = models.ForeignKey(FichaPersonagem, on_delete=models.SET_NULL, null=True, blank=True)
     data_entrada = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('mesa', 'jogador')
 
+# --- FEEDBACK ---
 class Feedback(models.Model):
     TIPO_CHOICES = [
         ('bug', 'Reportar Erro (Bug)'),
@@ -47,10 +48,7 @@ class Feedback(models.Model):
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='sugestao')
     mensagem = models.TextField()
     data_envio = models.DateTimeField(auto_now_add=True)
-    
-    # Campo para controle interno (se você já leu/resolveu)
     resolvido = models.BooleanField(default=False)
 
     def __str__(self):
-        nome = self.usuario.username if self.usuario else "Anônimo"
-        return f"[{self.get_tipo_display()}] - {nome} ({self.data_envio.strftime('%d/%m/%Y')})"
+        return f"[{self.tipo}] {self.usuario}"
